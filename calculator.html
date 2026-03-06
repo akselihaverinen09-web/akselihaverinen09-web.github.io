@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yksinkertainen laskin - Akseli Haverinen</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .back-link {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: white;
+            text-decoration: none;
+            font-size: 1.1rem;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 25px;
+            transition: all 0.3s ease;
+        }
+
+        .back-link:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateX(-5px);
+        }
+
+        .calculator-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 30px;
+            max-width: 400px;
+            width: 100%;
+            animation: slideUp 0.5s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 2rem;
+        }
+
+        .display {
+            width: 100%;
+            height: 80px;
+            background: #f5f7fa;
+            border: none;
+            border-radius: 10px;
+            font-size: 2.5rem;
+            text-align: right;
+            padding: 20px;
+            margin-bottom: 20px;
+            color: #2d3748;
+            font-weight: 600;
+        }
+
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        button {
+            padding: 25px;
+            font-size: 1.5rem;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 600;
+            background: #f5f7fa;
+            color: #2d3748;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+            background: #e2e8f0;
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        .operator {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .operator:hover {
+            background: linear-gradient(135deg, #5568d3 0%, #653a8b 100%);
+        }
+
+        .equals {
+            grid-column: span 2;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .equals:hover {
+            background: linear-gradient(135deg, #df82ea 0%, #e4465b 100%);
+        }
+
+        .clear {
+            background: #e53e3e;
+            color: white;
+        }
+
+        .clear:hover {
+            background: #c53030;
+        }
+
+        .zero {
+            grid-column: span 2;
+        }
+
+        .footer-text {
+            color: white;
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <a href="projektit.html" class="back-link">← Takaisin projekteihin</a>
+
+    <div class="calculator-container">
+        <h1>Yksinkertainen laskin</h1>
+        <input type="text" class="display" id="display" value="0" readonly>
+        <div class="buttons">
+            <button class="clear" onclick="clearDisplay()">C</button>
+            <button class="operator" onclick="appendOperator('/')">/</button>
+            <button class="operator" onclick="appendOperator('*')">×</button>
+            <button class="operator" onclick="deleteLast()">⌫</button>
+            
+            <button onclick="appendNumber('7')">7</button>
+            <button onclick="appendNumber('8')">8</button>
+            <button onclick="appendNumber('9')">9</button>
+            <button class="operator" onclick="appendOperator('-')">−</button>
+            
+            <button onclick="appendNumber('4')">4</button>
+            <button onclick="appendNumber('5')">5</button>
+            <button onclick="appendNumber('6')">6</button>
+            <button class="operator" onclick="appendOperator('+')">+</button>
+            
+            <button onclick="appendNumber('1')">1</button>
+            <button onclick="appendNumber('2')">2</button>
+            <button onclick="appendNumber('3')">3</button>
+            <button class="equals" onclick="calculate()">=</button>
+            
+            <button class="zero" onclick="appendNumber('0')">0</button>
+            <button onclick="appendNumber('.')">.</button>
+        </div>
+    </div>
+
+    <p class="footer-text">Akseli Haverinen © 2026</p>
+
+    <script>
+        let display = document.getElementById('display');
+        let currentValue = '0';
+        let operator = '';
+        let previousValue = '';
+        let waitingForOperand = false;
+
+        function updateDisplay() {
+            display.value = currentValue;
+        }
+
+        function clearDisplay() {
+            currentValue = '0';
+            operator = '';
+            previousValue = '';
+            waitingForOperand = false;
+            updateDisplay();
+        }
+
+        function deleteLast() {
+            if (currentValue.length > 1) {
+                currentValue = currentValue.slice(0, -1);
+            } else {
+                currentValue = '0';
+            }
+            updateDisplay();
+        }
+
+        function appendNumber(num) {
+            if (waitingForOperand) {
+                currentValue = num;
+                waitingForOperand = false;
+            } else {
+                if (currentValue === '0' && num !== '.') {
+                    currentValue = num;
+                } else {
+                    // Prevent multiple decimal points
+                    if (num === '.' && currentValue.includes('.')) {
+                        return;
+                    }
+                    currentValue += num;
+                }
+            }
+            updateDisplay();
+        }
+
+        function appendOperator(op) {
+            if (operator && !waitingForOperand) {
+                calculate();
+            }
+            
+            previousValue = currentValue;
+            operator = op;
+            waitingForOperand = true;
+        }
+
+        function calculate() {
+            if (!operator || waitingForOperand) {
+                return;
+            }
+
+            let prev = parseFloat(previousValue);
+            let current = parseFloat(currentValue);
+            let result;
+
+            switch(operator) {
+                case '+':
+                    result = prev + current;
+                    break;
+                case '-':
+                    result = prev - current;
+                    break;
+                case '*':
+                    result = prev * current;
+                    break;
+                case '/':
+                    if (current === 0) {
+                        alert('Ei voi jakaa nollalla!');
+                        clearDisplay();
+                        return;
+                    }
+                    result = prev / current;
+                    break;
+                default:
+                    return;
+            }
+
+            // Round to 10 decimal places to avoid floating point errors
+            result = Math.round(result * 10000000000) / 10000000000;
+            
+            currentValue = result.toString();
+            operator = '';
+            previousValue = '';
+            waitingForOperand = false;
+            updateDisplay();
+        }
+
+        // Keyboard support
+        document.addEventListener('keydown', function(event) {
+            const key = event.key;
+            
+            if (key >= '0' && key <= '9') {
+                appendNumber(key);
+            } else if (key === '.') {
+                appendNumber('.');
+            } else if (key === '+' || key === '-' || key === '*' || key === '/') {
+                appendOperator(key);
+            } else if (key === 'Enter' || key === '=') {
+                event.preventDefault();
+                calculate();
+            } else if (key === 'Escape' || key === 'c' || key === 'C') {
+                clearDisplay();
+            } else if (key === 'Backspace') {
+                deleteLast();
+            }
+        });
+    </script>
+</body>
+</html>
