@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💌 Yhteystiedot</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #0a1428 0%, #1a3a52 50%, #0f2744 100%);
+            background-attachment: fixed;
+            color: #e8f0f7;
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: 0;
+            width: 200%;
+            height: 200%;
+            background-image: 
+                radial-gradient(circle at 20% 60%, rgba(100, 180, 255, 0.1) 1px, transparent 1px),
+                radial-gradient(circle at 80% 20%, rgba(100, 200, 255, 0.08) 1px, transparent 1px),
+                radial-gradient(circle at 40% 40%, rgba(150, 220, 255, 0.1) 1px, transparent 1px);
+            background-size: 200px 200px, 300px 300px, 250px 250px;
+            pointer-events: none;
+            z-index: -1;
+            animation: drift 20s linear infinite;
+        }
+        
+        @keyframes drift {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(20, 40, 60, 0.9);
+            border: 3px solid #64b4ff;
+            padding: 40px;
+            box-shadow: 0 0 20px rgba(100, 180, 255, 0.3);
+        }
+        
+        header {
+            text-align: center;
+            border-bottom: 2px solid #64b4ff;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            font-size: 2em;
+            color: #64b4ff;
+            margin-bottom: 10px;
+        }
+        
+        .back-link {
+            color: #96dcff;
+            text-decoration: none;
+            margin-bottom: 20px;
+            display: inline-block;
+        }
+        
+        .back-link:hover {
+            color: #64b4ff;
+        }
+        
+        .contact-item {
+            background: rgba(144, 238, 144, 0.1);
+            border-left: 3px solid #96dcff;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        
+        .contact-label {
+            color: #64b4ff;
+            font-weight: bold;
+            margin-bottom: 8px;
+            font-size: 1.1em;
+        }
+        
+        .contact-value {
+            color: #f4e4c1;
+            font-size: 1.1em;
+            word-break: break-word;
+        }
+        
+        .contact-value a {
+            color: #96dcff;
+            text-decoration: none;
+        }
+        
+        .contact-value a:hover {
+            color: #64b4ff;
+        }
+        
+        .location-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .location-card {
+            background: rgba(212, 175, 55, 0.1);
+            border: 2px solid #64b4ff;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .location-icon {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+        
+        .location-name {
+            color: #96dcff;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        
+        .location-desc {
+            color: #f4e4c1;
+            font-size: 0.95em;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #64b4ff;
+            color: #96dcff;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">← Palaa etusivulle</a>
+        
+        <header>
+            <h1>💌 Yhteystiedot</h1>
+        </header>
+        
+        <div class="contact-item">
+            <div class="contact-label">📧 Sähköposti</div>
+            <div class="contact-value"><a href="mailto:sähköposti@example.com">sähköposti@example.com</a></div>
+        </div>
+        
+        <div class="contact-item">
+            <div class="contact-label">📱 Puhelinnumero</div>
+            <div class="contact-value"><a href="tel:+358501234567">+358 50 123 4567</a></div>
+        </div>
+        
+        <div class="contact-item">
+            <div class="contact-label">🌐 Website</div>
+            <div class="contact-value"><a href="https://akselihaverinen09-web.github.io" target="_blank">akselihaverinen09-web.github.io</a></div>
+        </div>
+        
+        <div class="contact-item">
+            <div class="contact-label">💼 LinkedIn</div>
+            <div class="contact-value"><a href="https://linkedin.com/in/profile" target="_blank">linkedin.com/in/profile</a></div>
+        </div>
+        
+        <div class="contact-item">
+            <div class="contact-label">🐙 GitHub</div>
+            <div class="contact-value"><a href="https://github.com/akselihaverinen09" target="_blank">github.com/akselihaverinen09</a></div>
+        </div>
+        
+        <h2 style="color: #64b4ff; margin-top: 40px; margin-bottom: 20px;">🗺️ Toimintaalueet</h2>
+        
+        <div class="location-grid">
+            <div class="location-card">
+                <div class="location-icon">🏢</div>
+                <div class="location-name">Pääkonttori</div>
+                <div class="location-desc">Hallinto ja suunnittelu</div>
+            </div>
+            <div class="location-card">
+                <div class="location-icon">📚</div>
+                <div class="location-name">Kehitys</div>
+                <div class="location-desc">Koulutus ja osaaminen</div>
+            </div>
+            <div class="location-card">
+                <div class="location-icon">⚙️</div>
+                <div class="location-name">Projektit</div>
+                <div class="location-desc">Toteutus ja johtaminen</div>
+            </div>
+        </div>
+        
+        <footer>
+            ✨ Ota yhteyttä milloin tahansa uusista mahdollisuuksista! ✨
+        </footer>
+    </div>
+</body>
+</html>

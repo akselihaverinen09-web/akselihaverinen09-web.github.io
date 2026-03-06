@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚔️ Taidot</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #0a1428 0%, #1a3a52 50%, #0f2744 100%);
+            background-attachment: fixed;
+            color: #e8f0f7;
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: 0;
+            width: 200%;
+            height: 200%;
+            background-image: 
+                radial-gradient(circle at 20% 60%, rgba(100, 180, 255, 0.1) 1px, transparent 1px),
+                radial-gradient(circle at 80% 20%, rgba(100, 200, 255, 0.08) 1px, transparent 1px),
+                radial-gradient(circle at 40% 40%, rgba(150, 220, 255, 0.1) 1px, transparent 1px);
+            background-size: 200px 200px, 300px 300px, 250px 250px;
+            pointer-events: none;
+            z-index: -1;
+            animation: drift 20s linear infinite;
+        }
+        
+        @keyframes drift {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: rgba(20, 40, 60, 0.9);
+            border: 3px solid #64b4ff;
+            padding: 40px;
+            box-shadow: 0 0 20px rgba(100, 180, 255, 0.3);
+        }
+        
+        header {
+            text-align: center;
+            border-bottom: 2px solid #64b4ff;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            font-size: 2em;
+            color: #64b4ff;
+            margin-bottom: 10px;
+        }
+        
+        .back-link {
+            color: #96dcff;
+            text-decoration: none;
+            margin-bottom: 20px;
+            display: inline-block;
+        }
+        
+        .back-link:hover {
+            color: #64b4ff;
+        }
+        
+        .skill-category {
+            margin-bottom: 35px;
+        }
+        
+        .category-title {
+            font-size: 1.5em;
+            color: #64b4ff;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #64b4ff;
+            display: flex;
+            align-items: center;
+        }
+        
+        .category-icon {
+            margin-right: 12px;
+            font-size: 1.3em;
+        }
+        
+        .skills-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .skill-card {
+            background: rgba(144, 238, 144, 0.1);
+            border: 2px solid #96dcff;
+            padding: 20px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .skill-card:hover {
+            background: rgba(144, 238, 144, 0.2);
+            box-shadow: 0 0 10px rgba(100, 180, 255, 0.3);
+            transform: translateY(-3px);
+        }
+        
+        .skill-name {
+            font-size: 1.1em;
+            color: #96dcff;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .skill-level {
+            color: #64b4ff;
+            font-size: 0.95em;
+            margin-bottom: 8px;
+        }
+        
+        .skill-bar {
+            background: rgba(212, 175, 55, 0.2);
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+        
+        .skill-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #96dcff, #64b4ff);
+            border-radius: 4px;
+        }
+        
+        .level-master {
+            width: 100%;
+        }
+        
+        .level-high {
+            width: 85%;
+        }
+        
+        .level-medium {
+            width: 70%;
+        }
+        
+        .level-basic {
+            width: 50%;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #64b4ff;
+            color: #96dcff;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">← Palaa etusivulle</a>
+        
+        <header>
+            <h1>⚔️ Hankkimat Taidot</h1>
+        </header>
+        
+        <div class="skill-category">
+            <div class="category-title">
+                <span class="category-icon">⚔️</span>
+                Tekniset Taidot
+            </div>
+            <div class="skills-grid">
+                <div class="skill-card">
+                    <div class="skill-name">� Ohjelmointi</div>
+                    <div class="skill-level">Mestari taso</div>
+                    <div class="skill-bar"><div class="skill-bar-fill level-master"></div></div>
+                </div>
+                <div class="skill-card">
+                    <div class="skill-name">🎨 Suunnittelu</div>
+                    <div class="skill-level">Korkea taso</div>
+                    <div class="skill-bar"><div class="skill-bar-fill level-high"></div></div>
+                </div>
+                <div class="skill-card">
+                    <div class="skill-name">🔧 Ongelmanratkaisu</div>
+                    <div class="skill-level">Korkea taso</div>
+                    <div class="skill-bar"><div class="skill-bar-fill level-high"></div></div>
+                </div>
+                <div class="skill-card">
+                    <div class="skill-name">📊 Analyysi</div>
+                    <div class="skill-level">Mestari taso</div>
+                    <div class="skill-bar"><div class="skill-bar-fill level-master"></div></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="skill-category">
+            <div class="category-title">
+                <span class="category-icon">�</span>
+                Innovaatiotaidot
+            </div>
+            <div class="skills-grid">
+                <div class="skill-card">
+                    <div class="skill-name">💡 Luovuus</div>
+                    <div class="skill-level">Korkea taso</div>
+                    <div class="skill-bar"><div class="skill-bar-fill level-high"></div></div>
+                </div>
+                <div class="skill-card">
+                    <div class="skill-name">🎯 Optimointi</div>
+                    <div class="skill-level">Korkea taso</div>
+                    <div class="skill-bar"><div class="skill-bar-fill level-high"></div></div>
+                </div>
+                <div class="skill-card">
+                    <div class="skill-name">🔬 Tutkimus</div>
+                    <div class="skill-level">Korkea taso</div>
+                    <div class="skill-bar"><div class="skill-bar-fill level-high"></div></div>
+                </div>
+                <div class="skill-card">
+                    <div class="skill-name">🔄 Kehitys</div>
+                    <div class="skill-level">Korkea taso</div>
+                    <div class="skill-bar"><div class="skill-bar-fill level-high"></div></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="skill-category">
+            <div class="category-title">
+                <span class="category-icon">🧠</span>
+                Strategiset taidot
+            </div>
+            <div class="skills-grid">
+                <div class="skill-card">
+                    <div class="skill-name">🎯 Pulmanratkaisu</div>
+                    <div class="skill-level">Mestari taso</div>
+                    <div class="skill-bar"><div class="skill-bar-fill level-master"></div></div>
+                </div>
+                <div class="skill-card">
+                    <div class="skill-name">🧭 Navigointi</div>
+                    <div class="skill-level">Mestari taso</div>
+                    <div class="skill-bar"><div class="skill-bar-fill level-master"></div></div>
+                </div>
+                <div class="skill-card">
+                    <div class="skill-name">💡 Strategia</div>
+                    <div class="skill-level">Korkea taso</div>
+                    <div class="skill-bar"><div class="skill-bar-fill level-high"></div></div>
+                </div>
+                <div class="skill-card">
+                    <div class="skill-name">📊 Analyysi</div>
+                    <div class="skill-level">Korkea taso</div>
+                    <div class="skill-bar"><div class="skill-bar-fill level-high"></div></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="skill-category">
+            <div class="category-title">
+                <span class="category-icon">🤝</span>
+                Johtamisen taidot
+            </div>
+            <div class="skills-grid">
+                <div class="skill-card">
+                    <div class="skill-name">🤝 Johtaminen</div>
+                    <div class="skill-level">Korkea taso</div>
+                    <div class="skill-bar"><div class="skill-bar-fill level-high"></div></div>
+                </div>
+                <div class="skill-card">
+                    <div class="skill-name">💬 Viestintä</div>
+                    <div class="skill-level">Korkea taso</div>
+                    <div class="skill-bar"><div class="skill-bar-fill level-high"></div></div>
+                </div>
+                <div class="skill-card">
+                    <div class="skill-name">👥 Tiimityö</div>
+                    <div class="skill-level">Korkea taso</div>
+                    <div class="skill-bar"><div class="skill-bar-fill level-high"></div></div>
+                </div>
+                <div class="skill-card">
+                    <div class="skill-name">🎓 Opettaminen</div>
+                    <div class="skill-level">Korkea taso</div>
+                    <div class="skill-bar"><div class="skill-bar-fill level-high"></div></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="skill-category">
+            <div class="category-title">
+                <span class="category-icon">🌐</span>
+                Kielitaidot
+            </div>
+            <div class="skills-grid">
+                <div class="skill-card">
+                    <div class="skill-name">🇫🇮 Suomi</div>
+                    <div class="skill-level">Äidinkieli</div>
+                    <div class="skill-bar"><div class="skill-bar-fill level-master"></div></div>
+                </div>
+                <div class="skill-card">
+                    <div class="skill-name">🇬🇧 Englanti</div>
+                    <div class="skill-level">Sujuva</div>
+                    <div class="skill-bar"><div class="skill-bar-fill level-high"></div></div>
+                </div>
+                <div class="skill-card">
+                    <div class="skill-name">🇸🇪 Ruotsi</div>
+                    <div class="skill-level">Sujuva</div>
+                    <div class="skill-bar"><div class="skill-bar-fill level-high"></div></div>
+                </div>
+                <div class="skill-card">
+                    <div class="skill-name">🇩🇪 Saksa</div>
+                    <div class="skill-level">Perustaso</div>
+                    <div class="skill-bar"><div class="skill-bar-fill level-basic"></div></div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            ✨ Taidot kehittyvät jatkuvasti uusissa projekteissa! ✨
+        </footer>
+    </div>
+</body>
+</html>

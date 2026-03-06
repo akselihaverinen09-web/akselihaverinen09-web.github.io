@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏆 Projektit</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #0a1428 0%, #1a3a52 50%, #0f2744 100%);
+            background-attachment: fixed;
+            color: #e8f0f7;
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: 0;
+            width: 200%;
+            height: 200%;
+            background-image: 
+                radial-gradient(circle at 20% 60%, rgba(100, 180, 255, 0.1) 1px, transparent 1px),
+                radial-gradient(circle at 80% 20%, rgba(100, 200, 255, 0.08) 1px, transparent 1px),
+                radial-gradient(circle at 40% 40%, rgba(150, 220, 255, 0.1) 1px, transparent 1px);
+            background-size: 200px 200px, 300px 300px, 250px 250px;
+            pointer-events: none;
+            z-index: -1;
+            animation: drift 20s linear infinite;
+        }
+        
+        @keyframes drift {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: rgba(20, 40, 60, 0.9);
+            border: 3px solid #64b4ff;
+            padding: 40px;
+            box-shadow: 0 0 20px rgba(100, 180, 255, 0.3);
+        }
+        
+        header {
+            text-align: center;
+            border-bottom: 2px solid #64b4ff;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            font-size: 2em;
+            color: #64b4ff;
+            margin-bottom: 10px;
+        }
+        
+        .back-link {
+            color: #96dcff;
+            text-decoration: none;
+            margin-bottom: 20px;
+            display: inline-block;
+        }
+        
+        .back-link:hover {
+            color: #64b4ff;
+        }
+        
+        .project-entry {
+            background: rgba(144, 238, 144, 0.05);
+            border-left: 4px solid #64b4ff;
+            padding: 25px;
+            margin-bottom: 25px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .project-entry:hover {
+            background: rgba(144, 238, 144, 0.1);
+            box-shadow: 0 0 15px rgba(100, 180, 255, 0.2);
+        }
+        
+        .project-title {
+            font-size: 1.4em;
+            color: #96dcff;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .project-icon {
+            margin-right: 12px;
+            font-size: 1.5em;
+        }
+        
+        .project-date {
+            color: #64b4ff;
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 0.95em;
+        }
+        
+        .project-description {
+            color: #f4e4c1;
+            margin-bottom: 12px;
+            line-height: 1.7;
+        }
+        
+        .project-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        
+        .tag {
+            background: rgba(144, 238, 144, 0.2);
+            border: 1px solid #96dcff;
+            color: #96dcff;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+        }
+        
+        .position-tag {
+            background: rgba(212, 175, 55, 0.2);
+            border: 1px solid #64b4ff;
+            color: #64b4ff;
+        }
+        
+        .category-section {
+            margin-bottom: 35px;
+        }
+        
+        .category-title {
+            font-size: 1.6em;
+            color: #64b4ff;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #64b4ff;
+            display: flex;
+            align-items: center;
+        }
+        
+        .category-icon {
+            margin-right: 12px;
+            font-size: 1.4em;
+        }
+        
+        .achievements {
+            background: rgba(212, 175, 55, 0.1);
+            border: 2px solid #64b4ff;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 30px;
+        }
+        
+        .achievements h2 {
+            color: #64b4ff;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+        
+        .achievement-item {
+            color: #f4e4c1;
+            margin-bottom: 10px;
+            padding-left: 20px;
+            position: relative;
+        }
+        
+        .achievement-item::before {
+            content: "🏆";
+            position: absolute;
+            left: 0;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #64b4ff;
+            color: #96dcff;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">← Palaa etusivulle</a>
+        
+        <header>
+            <h1>🏆 Projektit & Saavutukset</h1>
+        </header>
+        
+        <div class="category-section">
+            <div class="category-title">
+                <span class="category-icon">🚀</span>
+                Merkittävät Projektit
+            </div>
+            
+            <div class="project-entry">
+                <div class="project-title">
+                    <span class="project-icon">🚀</span>
+                    Transformaatioprojekti
+                </div>
+                <div class="project-date">📅 2023 - 2024</div>
+                <div class="project-description">
+                    Johtava rooli merkittävässä digitaalisen muutoksen projektissa. 
+                    Useiden tiimien koordinointi ja kriittisten tavoitteiden saavuttaminen.
+                </div>
+                <div class="project-tags">
+                    <span class="tag position-tag">Projektipäällikkö</span>
+                    <span class="tag">Tiimityö</span>
+                    <span class="tag">Strategia</span>
+                    <span class="tag">Johtaminen</span>
+                </div>
+            </div>
+            
+            <div class="project-entry">
+                <div class="project-title">
+                    <span class="project-icon">💼</span>
+                    Senior Specialist
+                </div>
+                <div class="project-date">📅 2020 - Nykyisin</div>
+                <div class="project-description">
+                    Ammattilainen, joka johtaa keskittyviä projekteja ja ohjaa kehitystä. 
+                    Monimutkaisten ongelmien ratkaiseminen ja asiakaspalvelun johtaminen.
+                </div>
+                <div class="project-tags">
+                    <span class="tag position-tag">Senior Specialist</span>
+                    <span class="tag">Johtaminen</span>
+                    <span class="tag">Asiakaspalvelu</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="category-section">
+            <div class="category-title">
+                <span class="category-icon">📚</span>
+                Koulutus & Kehitys
+            </div>
+            
+            <div class="project-entry">
+                <div class="project-title">
+                    <span class="project-icon">🏫</span>
+                    Tiimin kehittäminen
+                </div>
+                <div class="project-date">📅 2018 - 2020</div>
+                <div class="project-description">
+                    Koulutusjohtaja, joka vastasi tiimien kehittämisestä. 
+                    Harjoitusohjelmien organisointi ja osaamisen johtaminen.
+                </div>
+                <div class="project-tags">
+                    <span class="tag position-tag">Koulutusjohtaja</span>
+                    <span class="tag">Opettaminen</span>
+                    <span class="tag">Johtaminen</span>
+                    <span class="tag">Kehitys</span>
+                </div>
+            </div>
+            
+            <div class="project-entry">
+                <div class="project-title">
+                    <span class="project-icon">📖</span>
+                    Strateginen tutkimus
+                </div>
+                <div class="project-date">📅 2015 - 2016</div>
+                <div class="project-description">
+                    Strateginen tutkimus "Digitaalisen transformaation johtaminen". 
+                    Perusteellinen analyysi kehitysmenetelmiä ja parhaista käytännöistä.
+                </div>
+                <div class="project-tags">
+                    <span class="tag">Tutkimus</span>
+                    <span class="tag">Analyysi</span>
+                    <span class="tag">Dokumentointi</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="category-section">
+            <div class="category-title">
+                <span class="category-icon">💼</span>
+                Liiketoiminta & Palvelu
+            </div>
+            
+            <div class="project-entry">
+                <div class="project-title">
+                    <span class="project-icon">📱</span>
+                    Asiakaspalvelun johtaminen
+                </div>
+                <div class="project-date">📅 2016 - 2018</div>
+                <div class="project-description">
+                    Asiakaspalvelun järjestelmien johtaminen ja optimointi. 
+                    Prosessien parantaminen ja asiakastyytyväisyyden tavoitteiden saavuttaminen.
+                </div>
+                <div class="project-tags">
+                    <span class="tag position-tag">Palvelupäällikkö</span>
+                    <span class="tag">Myynti</span>
+                    <span class="tag">Asiakaspalvelu</span>
+                    <span class="tag">Optimointi</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="achievements">
+            <h2>🏆 Saavutukset & Sertifikaatit</h2>
+            <div class="achievement-item">🎖️ Vuoden ammattilainen (2023)</div>
+            <div class="achievement-item">⭐ Johtamisosaamisen sertifikaatti (2022)</div>
+            <div class="achievement-item">💎 Projektipäällikön sertifikaatti (2021)</div>
+            <div class="achievement-item">🎯 Innovaatiopalkinto (2020)</div>
+            <div class="achievement-item">📊 Strategian asiantuntija (2019)</div>
+            <div class="achievement-item">✨ Asiakastyytyväisyyspalkinto (2024)</div>
+        </div>
+        
+        <footer>
+            ✨ Jokainen projekti kehittää osaamistani ja vie uraa eteenpäin! ✨
+        </footer>
+    </div>
+</body>
+</html>

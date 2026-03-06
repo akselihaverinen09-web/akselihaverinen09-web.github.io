@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚔️ Seikkailijan Ansioluettelo ⚔️</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1a472a 0%, #2d5a3d 100%);
+            color: #f4e4c1;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: rgba(20, 40, 60, 0.9);
+            border: 3px solid #d4af37;
+            padding: 40px;
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+        }
+        
+        header {
+            text-align: center;
+            border-bottom: 2px solid #d4af37;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            font-size: 2.5em;
+            color: #d4af37;
+            margin-bottom: 5px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        .subtitle {
+            font-size: 1.2em;
+            color: #90ee90;
+            margin-bottom: 10px;
+        }
+        
+        .quest-info {
+            font-size: 0.95em;
+            color: #b8d4e8;
+        }
+        
+        section {
+            margin-bottom: 30px;
+        }
+        
+        .section-title {
+            font-size: 1.8em;
+            color: #d4af37;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #d4af37;
+            display: flex;
+            align-items: center;
+        }
+        
+        .section-title::before {
+            content: "⚔️ ";
+            margin-right: 10px;
+        }
+        
+        .entry {
+            margin-bottom: 20px;
+            padding-left: 20px;
+            border-left: 3px solid #90ee90;
+        }
+        
+        .entry-title {
+            font-size: 1.3em;
+            color: #90ee90;
+            margin-bottom: 5px;
+        }
+        
+        .entry-subtitle {
+            font-size: 1em;
+            color: #d4af37;
+            margin-bottom: 5px;
+        }
+        
+        .entry-date {
+            font-style: italic;
+            color: #b8d4e8;
+            font-size: 0.9em;
+            margin-bottom: 8px;
+        }
+        
+        .entry-description {
+            color: #f4e4c1;
+            margin-bottom: 8px;
+        }
+        
+        .skills-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+        
+        .skill-item {
+            background: rgba(144, 238, 144, 0.1);
+            border: 1px solid #90ee90;
+            padding: 12px;
+            border-radius: 5px;
+            text-align: center;
+            color: #90ee90;
+        }
+        
+        .skill-level {
+            color: #d4af37;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+        
+        .item-icon {
+            margin-right: 8px;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #d4af37;
+            color: #b8d4e8;
+            font-style: italic;
+        }
+        
+        @media print {
+            body {
+                background: white;
+            }
+            .container {
+                background: white;
+                color: black;
+                border: 1px solid #999;
+            }
+            h1, .section-title {
+                color: #000;
+            }
+            .subtitle {
+                color: #333;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🗡️ Seikkailijan Ansioluettelo 🛡️</h1>
+            <p class="subtitle">Hylian Adventurer's Quest Log</p>
+            <p class="quest-info">📍 Hyrule Kingdom | 🔔 [Puhelinnumero] | 💌 [Sähköposti]</p>
+        </header>
+        
+        <section>
+            <div class="section-title">Pelaajan Profiili</div>
+            <p style="color: #f4e4c1; padding-left: 20px;">
+                Kokemukseltaan vahva seikkailija, jolla on laaja kokemus monista dungeonista ja haastavista peleistä. 
+                Osoittautunut kykynsä ratkaista monimutkaiset pulmat ja voittaa paikalliset uhokkaat. 
+                Erityisen hyvä yhteistyöstä, johtamisesta ja pitkäjänteisesta tavoitteiden saavuttamisesta.
+            </p>
+        </section>
+        
+        <section>
+            <div class="section-title">Pääseikkailut</div>
+            
+            <div class="entry">
+                <div class="entry-title"><span class="item-icon">🗡️</span>Legendaarinen Seikkailija</div>
+                <div class="entry-subtitle">Hylian Royal Guard</div>
+                <div class="entry-date">⏰ 2020 - Nykyisin</div>
+                <div class="entry-description">
+                    • Prinsessan suojeleminen ja ympäristön puolustaminen Ganondorf'ia vastaan<br>
+                    • Dungeonien läpäiseminen ja arvokkaitten esineiden kerääminen<br>
+                    • Paikallisten asukkaiden avustaminen ja sivutehtävien suorittaminen<br>
+                    • Kollegoiden kanssa yhteistyö ja tiimintoiminnan johtaminen
+                </div>
+            </div>
+            
+            <div class="entry">
+                <div class="entry-title"><span class="item-icon">🛡️</span>Dungeonin Master</div>
+                <div class="entry-subtitle">Lost Woods Academy</div>
+                <div class="entry-date">⏰ 2018 - 2020</div>
+                <div class="entry-description">
+                    • Uusien seikkailijan opettaminen ja kunnostaminen<br>
+                    • Harjoituksien järjestäminen ja turvakäytäntöjen valvominen<br>
+                    • Seikkailijan varusteiston hankkiminen ja ylläpito<br>
+                    • Raportointi hallitukselle ja budjettien hallinta
+                </div>
+            </div>
+            
+            <div class="entry">
+                <div class="entry-title"><span class="item-icon">🔑</span>Tavarakauppias</div>
+                <div class="entry-subtitle">Majora's Marketplace</div>
+                <div class="entry-date">⏰ 2016 - 2018</div>
+                <div class="entry-description">
+                    • Arvokkaitten tavaroiden myynti ja asiakaspalvelu<br>
+                    • Inventaarion hallinta ja hinnoittelu<br>
+                    • Myyntitavoitteiden saavuttaminen ja asiakastyytyväisyyden parantaminen
+                </div>
+            </div>
+        </section>
+        
+        <section>
+            <div class="section-title">Hankkimat Kyvyt</div>
+            <div class="skills-grid">
+                <div class="skill-item">
+                    <div>⚔️ Miekkataito</div>
+                    <div class="skill-level">Mestari</div>
+                </div>
+                <div class="skill-item">
+                    <div>🏹 Jousiammunta</div>
+                    <div class="skill-level">Korkea</div>
+                </div>
+                <div class="skill-item">
+                    <div>🔥 Taikasumma</div>
+                    <div class="skill-level">Korkea</div>
+                </div>
+                <div class="skill-item">
+                    <div>🎯 Pulmanratkaisu</div>
+                    <div class="skill-level">Mestari</div>
+                </div>
+                <div class="skill-item">
+                    <div>🤝 Johtaminen</div>
+                    <div class="skill-level">Korkea</div>
+                </div>
+                <div class="skill-item">
+                    <div>🧭 Navigointi</div>
+                    <div class="skill-level">Mestari</div>
+                </div>
+                <div class="skill-item">
+                    <div>💡 Strategia</div>
+                    <div class="skill-level">Korkea</div>
+                </div>
+                <div class="skill-item">
+                    <div>📚 Tutkimus</div>
+                    <div class="skill-level">Korkea</div>
+                </div>
+            </div>
+        </section>
+        
+        <section>
+            <div class="section-title">Koulutus & Sertifikaatit</div>
+            
+            <div class="entry">
+                <div class="entry-title"><span class="item-icon">📜</span>Sacred Realm Studies</div>
+                <div class="entry-subtitle">Hyrule University</div>
+                <div class="entry-date">⏰ 2015 - 2016</div>
+                <div class="entry-description">Tutkielma: "Pyhän maalin löytäminen ja sen käytön strategiat"</div>
+            </div>
+            
+            <div class="entry">
+                <div class="entry-title"><span class="item-icon">🎖️</span>Seikkailijan Basic Training</div>
+                <div class="entry-subtitle">Royal Knight Academy</div>
+                <div class="entry-date">⏰ 2014</div>
+            </div>
+            
+            <div class="entry">
+                <div class="entry-title"><span class="item-icon">🏆</span>Advanced Dungeon Navigation</div>
+                <div class="entry-subtitle">Lost Woods Institute</div>
+                <div class="entry-date">⏰ 2013 - 2014</div>
+            </div>
+        </section>
+        
+        <section>
+            <div class="section-title">Keräilyesineet & Saavutukset</div>
+            <p style="color: #f4e4c1; padding-left: 20px;">
+                🏆 Legendan Sankari (2023)<br>
+                🧿 Kahdeksan Dungeonin Mestari (2022)<br>
+                💎 Tri-Forcea saanut Seikkailija (2021)<br>
+                🎯 Hylian Hero Badge (2020)<br>
+                🗺️ Koko maailman kartoittaja (2019)
+            </p>
+        </section>
+        
+        <section>
+            <div class="section-title">Kielitaidot</div>
+            <p style="color: #f4e4c1; padding-left: 20px;">
+                🗣️ Hylian - Äidinkieli<br>
+                🗣️ Goron - Sujuva<br>
+                🗣️ Zora - Sujuva<br>
+                🗣️ Gerudo - Perustaso
+            </p>
+        </section>
+        
+        <footer>
+            ✨ "Ei ole väylää, kun riittää rohkeutta!" ✨<br>
+            Viimeksi päivitetty: Maaliskuu 2026<br>
+            Käytettävissä varten uutta seikkailua!
+        </footer>
+    </div>
+</body>
+</html>
