@@ -61,8 +61,14 @@
     <a class="back-link" href="projektit.html">← Back to Projects</a>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/dist/cannon-es.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/cannon@0.6.2/build/cannon.min.js"></script>
     <script>
+        if (!window.THREE || !window.CANNON) {
+            const loading = document.getElementById('loading');
+            loading.innerHTML = '<h2>Failed to load 3D libraries</h2><p>Check internet connection and reload.</p>';
+            throw new Error('Missing required libraries: THREE or CANNON');
+        }
+
         // DOM Elements
         const canvas = document.getElementById('gameCanvas');
         const fpsEl = document.getElementById('fps');
@@ -80,6 +86,11 @@
                 }, 500);
             }
         }
+
+        // Fail-safe: never keep the loading overlay forever.
+        setTimeout(() => {
+            loadingEl.classList.add('hidden');
+        }, 8000);
 
         updateLoading(10);
 
