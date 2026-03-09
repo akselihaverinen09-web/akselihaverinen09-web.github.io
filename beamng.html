@@ -63,6 +63,12 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/cannon@0.6.2/build/cannon.min.js"></script>
     <script>
+        // Wait for libraries to load
+        window.addEventListener('load', () => {
+            initGame();
+        });
+
+        function initGame() {
         // Initialize loading
         const loadingEl = document.getElementById('loading');
         const loadingProgress = document.getElementById('loadingProgress');
@@ -146,16 +152,12 @@
             }
             groundGeometry.computeVertexNormals();
 
-            const groundTexture = new THREE.TextureLoader().load('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzY4OGQ1NyIvPjwvc3ZnPg==');
-            groundTexture.wrapS = groundTexture.wrapT = THREE.RepeatWrapping;
-            groundTexture.repeat.set(50, 50);
-
-            const groundMaterial = new THREE.MeshStandardMaterial({ 
+            const groundMeshMaterial = new THREE.MeshStandardMaterial({ 
                 color: 0x688d57,
                 roughness: 0.9
             });
             
-            const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+            const ground = new THREE.Mesh(groundGeometry, groundMeshMaterial);
             ground.rotation.x = -Math.PI / 2;
             ground.receiveShadow = true;
             scene.add(ground);
@@ -319,6 +321,7 @@
             }
 
             createWheels() {
+                const carPos = this.chassisBody.position;
                 const wheelPositions = [
                     { x: -1, z: 1.3 },
                     { x: 1, z: 1.3 },
@@ -342,17 +345,29 @@
                     // Physics wheel
                     const wheelBody = new CANNON.Body({
                         mass: 30,
-                        shape: new CANNON.Cylinder(0.4, 0.4, 0.3, 16),
+                        shape: new CANNON.Sphere(0.4),
                         material: wheelMaterial
                     });
-                    wheelBody.position.set(pos.x, 2.5, pos.z);
+                    wheelBody.position.set(
+                        carPos.x + pos.x,
+                        carPos.y - 0.5,
+                        carPos.z + pos.z
+                    );
                     world.addBody(wheelBody);
                     this.wheelBodies.push(wheelBody);
 
-                    // Constraint
-                    const constraint = new CANNON.HingeConstraint(this.chassisBody, wheelBody, {
-                        pivotA: new CANNON.Vec3(pos.x, -0.5, pos.z),
-                        axisA: new CANNON.Vec3(1, 0, 0),
+                    // Spring constraint to chassis
+                    const spring = new CANNON.Spring(this.chassisBody, wheelBody, {
+                        restLength: 1,
+                        stiffness: 500,
+                        damping: 10,
+                        localAnchorA: new CANNON.Vec3(pos.x, -0.7, pos.z),
+                        localAnchorB: new CANNON.Vec3(0, 0, 0)
+                    });
+                    
+                    world.addEventListener('postStep', () => {
+                        spring.applyForce();
+                    }0, 0),
                         pivotB: new CANNON.Vec3(0, 0, 0),
                         axisB: new CANNON.Vec3(1, 0, 0)
                     });
@@ -580,6 +595,7 @@
         }
 
         animate(performance.now());
+        } // End initGame
     </script>
 </body>
 </html>
