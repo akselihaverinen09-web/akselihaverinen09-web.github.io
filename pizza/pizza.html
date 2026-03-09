@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 </head>
 <body>
   <div class="bg-shape bg-shape-left"></div>
@@ -48,6 +49,11 @@
         <div class="form-row">
           <label for="customerName">Nimi</label>
           <input id="customerName" name="customerName" type="text" required />
+        </div>
+
+        <div class="form-row">
+          <label for="customerEmail">Sähköposti</label>
+          <input id="customerEmail" name="customerEmail" type="email" required />
         </div>
 
         <div class="form-row">

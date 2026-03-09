@@ -1,3 +1,16 @@
+// EmailJS Configuration
+// Hanki ilmaiset tunnukset: https://www.emailjs.com/
+const EMAILJS_CONFIG = {
+  serviceId: 'YOUR_SERVICE_ID',    // Korvaa EmailJS-palvelun ID:llä
+  templateId: 'YOUR_TEMPLATE_ID',  // Korvaa EmailJS-templaten ID:llä
+  publicKey: 'YOUR_PUBLIC_KEY'     // Korvaa EmailJS public key:llä
+};
+
+// Alusta EmailJS
+if (typeof emailjs !== 'undefined') {
+  emailjs.init(EMAILJS_CONFIG.publicKey);
+}
+
 const REAL_PHOTO_POOL = [
   "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=800&h=600&fit=crop",
   "https://images.unsplash.com/photo-1628840042765-356cda07504e?w=800&h=600&fit=crop",
@@ -267,56 +280,56 @@ function maskCardNumber(value) {
   return `**** **** **** ${digits.slice(-4)}`;
 }
 
-// Backend API URL - muuta tämä tuotannossa oikeaan osoitteeseen
-const API_URL = 'http://localhost:3000';
-
-async function sendSMSConfirmation(phone, name, orderId, items, total, deliveryType, address) {
-  const itemsList = items.map(item => `${item.qty}x ${item.name}`).join(", ");
+async function sendEmailConfirmation(email, name, orderId, items, total, deliveryType, address) {
+  const itemsList = items.map(item => `${item.qty}x ${item.name} (${formatPrice(item.price)})`).join("\n");
   
-  try {
-    console.log("📱 Lähetetään SMS...");
-    
-    const response = await fetch(`${API_URL}/api/send-sms`, {
-      method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ 
-        phone, 
-        name, 
-        orderId, 
-        items,
-        total: formatPrice(total),
-        deliveryType, 
-        address 
-      })
-    });
-
-    const result = await response.json();
-    
-    if (result.success) {
-      console.log("✅ SMS lähetetty onnistuneesti!");
-      console.log("Message SID:", result.messageSid);
-      return { success: true, message: result.message };
-    } else {
-      console.error("❌ SMS-lähetys epäonnistui:", result.error);
-      return { success: false, error: result.error };
+  // Tarkista että EmailJS on määritetty
+  if (EMAILJS_CONFIG.serviceId === 'YOUR_SERVICE_ID') {
+    console.log("⚠️ EmailJS ei ole vielä määritetty!");
+    console.log("═══════════════════════════════════");
+    console.log("📧 SIMULOITU SÄHKÖPOSTI");
+    console.log("═══════════════════════════════════");
+    console.log(`Vastaanottaja: ${email}`);
+    console.log(`Asiakas: ${name}`);
+    console.log(`Tilausnumero: ${orderId}`);
+    console.log(`\nPizzat:\n${itemsList}`);
+    console.log(`\nYhteensä: ${formatPrice(total)}`);
+    console.log(`Toimitustapa: ${deliveryType}`);
+    if (deliveryType === "Kotiinkuljetus") {
+      console.log(`Osoite: ${address}`);
     }
+    console.log("═══════════════════════════════════");
+    console.log("💡 Määritä EmailJS tunnukset app.js tiedostossa");
+    
+    return { success: false, error: 'EmailJS ei määritetty' };
+  }
+
+  try {
+    console.log("📧 Lähetetään sähköposti...");
+    
+    const templateParams = {
+      to_email: email,
+      to_name: name,
+      order_id: orderId,
+      order_items: itemsList,
+      order_total: formatPrice(total),
+      delivery_type: deliveryType,
+      delivery_address: deliveryType === "Kotiinkuljetus" ? address : "Nouto: Pizzakatu 7, Helsinki",
+      estimated_time: "30-45 min"
+    };
+
+    const response = await emailjs.send(
+      EMAILJS_CONFIG.serviceId,
+      EMAILJS_CONFIG.templateId,
+      templateParams
+    );
+
+    console.log("✅ Sähköposti lähetetty onnistuneesti!", response);
+    return { success: true };
     
   } catch (error) {
-    console.error("❌ Virhe SMS-lähetyksessä:", error);
-    
-    // Fallback: Näytä konsoliin jos backend ei ole käytettävissä
-    console.log("═══════════════════════════════════");
-    console.log("⚠️  BACKEND EI KÄYTETTÄVISSÄ - SIMULOITU SMS");
-    console.log("═══════════════════════════════════");
-    console.log(`Vastaanottaja: ${phone}`);
-    console.log(`Tilausnumero: ${orderId}`);
-    console.log(`Pizzat: ${itemsList}`);
-    console.log("═══════════════════════════════════");
-    console.log("💡 Käynnistä backend: npm start");
-    
-    return { success: false, error: "Backend ei käytettävissä" };
+    console.error("❌ Sähköpostin lähetys epäonnistui:", error);
+    return { success: false, error: error.text || error.message };
   }
 }
 
@@ -380,14 +393,15 @@ checkoutForm.addEventListener("submit", async (event) => {
 
   const formData = new FormData(checkoutForm);
   const name = String(formData.get("customerName") || "").trim();
+  const email = String(formData.get("customerEmail") || "").trim();
   const phone = String(formData.get("customerPhone") || "").trim();
   const type = String(formData.get("orderType") || "Kotiinkuljetus");
   const address = String(formData.get("customerAddress") || "").trim();
   const notes = String(formData.get("orderNotes") || "").trim();
   const cardNumber = String(formData.get("cardNumber") || "").trim();
 
-  if (!name || !phone) {
-    orderMessage.textContent = "Tayta nimi ja puhelin.";
+  if (!name || !email || !phone) {
+    orderMessage.textContent = "Tayta nimi, sahkoposti ja puhelin.";
     orderMessage.classList.add("error");
     return;
   }
@@ -403,7 +417,7 @@ checkoutForm.addEventListener("submit", async (event) => {
   orders.push({
     id: orderId,
     createdAt: new Date().toISOString(),
-    customer: { name, phone, type, address, notes },
+    customer: { name, email, phone, type, address, notes },
     payment: { method: "Korttimaksu", card: maskCardNumber(cardNumber) },
     items: lines.map((line) => ({
       id: line.id,
@@ -417,12 +431,12 @@ checkoutForm.addEventListener("submit", async (event) => {
 
   saveJSON(ORDERS_KEY, orders);
 
-  // Show loading state
-  orderMessage.textContent = "Lähetetään tilausta ja SMS:ää...";
+  // Näytä lataustila
+  orderMessage.textContent = "Lahetetaan tilausta...";
   orderMessage.classList.add("info");
 
-  // Lähetetään tekstiviesti asiakkaalle
-  const smsResult = await sendSMSConfirmation(phone, name, orderId, lines, total, type, address);
+  // Lähetä vahvistussähköposti
+  const emailResult = await sendEmailConfirmation(email, name, orderId, lines, total, type, address);
 
   cart = [];
   persistCart();
@@ -431,16 +445,14 @@ checkoutForm.addEventListener("submit", async (event) => {
   checkoutForm.reset();
   toggleAddress();
 
-  // Show result based on SMS status
-  if (smsResult.success) {
-    orderMessage.textContent = `✅ Tilaus vastaanotettu! SMS lähetetty numeroon ${phone}`;
-    orderMessage.classList.remove("info");
-    orderMessage.classList.add("success");
+  // Näytä tulos
+  if (emailResult.success) {
+    orderMessage.textContent = `Tilaus vastaanotettu! Vahvistus lahetetty osoitteeseen ${email}`;
   } else {
-    orderMessage.textContent = `⚠️ Tilaus vastaanotettu, mutta SMS-lähetys epäonnistui. Tarkista että backend on käynnissä.`;
-    orderMessage.classList.remove("info");
-    orderMessage.classList.add("warning");
+    orderMessage.textContent = `Tilaus vastaanotettu! Tilausnumero: ${orderId} (Sahkopostin lahetys epaonnistui)`;
   }
+  orderMessage.classList.remove("info");
+  orderMessage.classList.add("success");
 });
 
 // Modal toiminnallisuus
