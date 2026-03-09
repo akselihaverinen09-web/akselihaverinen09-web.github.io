@@ -61,21 +61,18 @@
     <a class="back-link" href="projektit.html">← Back to Projects</a>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/cannon@0.6.2/build/cannon.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/dist/cannon-es.js"></script>
     <script>
-        // Wait for libraries to load
-        window.addEventListener('load', () => {
-            initGame();
-        });
-
-        function initGame() {
-        // Initialize loading
+        // DOM Elements
+        const canvas = document.getElementById('gameCanvas');
+        const fpsEl = document.getElementById('fps');
+        const speedEl = document.getElementById('speed');
+        const damageBar = document.getElementById('damageBar');
+        const cameraModeEl = document.getElementById('cameraMode');
         const loadingEl = document.getElementById('loading');
         const loadingProgress = document.getElementById('loadingProgress');
-        let loadProgress = 0;
 
         function updateLoading(progress) {
-            loadProgress = progress;
             loadingProgress.style.width = progress + '%';
             if (progress >= 100) {
                 setTimeout(() => {
@@ -84,14 +81,7 @@
             }
         }
 
-        updateLoading(20);
-
-        // DOM Elements
-        const canvas = document.getElementById('gameCanvas');
-        const fpsEl = document.getElementById('fps');
-        const speedEl = document.getElementById('speed');
-        const damageBar = document.getElementById('damageBar');
-        const cameraModeEl = document.getElementById('cameraMode');
+        updateLoading(10);
 
         // Three.js Setup
         const scene = new THREE.Scene();
@@ -99,34 +89,25 @@
         scene.fog = new THREE.Fog(0x87ceeb, 100, 500);
 
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 10, 20);
+
         const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-        updateLoading(40);
+        updateLoading(30);
 
         // Cannon.js Physics World
         const world = new CANNON.World();
-        world.gravity.set(0, -20, 0);
-        world.broadphase = new CANNON.NaiveBroadphase();
-        world.solver.iterations = 10;
-
-        // Materials
-        const groundMaterial = new CANNON.Material('ground');
-        const wheelMaterial = new CANNON.Material('wheel');
-        const wheelGroundContact = new CANNON.ContactMaterial(wheelMaterial, groundMaterial, {
-            friction: 0.7,
-            restitution: 0.1
-        });
-        world.addContactMaterial(wheelGroundContact);
+        world.gravity.set(0, -15, 0);
 
         // Lighting
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
         scene.add(ambientLight);
 
-        const sunLight = new THREE.DirectionalLight(0xffffff, 0.8);
-        sunLight.position.set(100, 150, 50);
+        const sunLight = new THREE.DirectionalLight(0xffffff, 0.9);
+        sunLight.position.set(80, 120, 40);
         sunLight.castShadow = true;
         sunLight.shadow.mapSize.width = 2048;
         sunLight.shadow.mapSize.height = 2048;
@@ -136,367 +117,364 @@
         sunLight.shadow.camera.bottom = -100;
         scene.add(sunLight);
 
+        updateLoading(50);
+
+        // Create Ground
+        const groundGeometry = new THREE.PlaneGeometry(400, 400, 40, 40);
+        const vertices = groundGeometry.attributes.position.array;
+        
+        for (let i = 0; i < vertices.length; i += 3) {
+            const x = vertices[i];
+            const y = vertices[i + 1];
+            vertices[i + 2] = Math.sin(x * 0.03) * Math.cos(y * 0.05) * 3;
+        }
+        groundGeometry.computeVertexNormals();
+
+        const groundMaterial = new THREE.MeshStandardMaterial({ 
+            color: 0x5a7a3a,
+            roughness: 0.85
+        });
+        
+        const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+        ground.rotation.x = -Math.PI / 2;
+        ground.receiveShadow = true;
+        scene.add(ground);
+
+        // Physics ground
+        const groundPhysics = new CANNON.Body({
+            mass: 0,
+            shape: new CANNON.Plane()
+        });
+        groundPhysics.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
+        world.addBody(groundPhysics);
+
         updateLoading(60);
 
-        // Create Ground with Hills
-        function createTerrain() {
-            const groundGeometry = new THREE.PlaneGeometry(400, 400, 50, 50);
-            const vertices = groundGeometry.attributes.position.array;
-            
-            // Add hills
-            for (let i = 0; i < vertices.length; i += 3) {
-                const x = vertices[i];
-                const y = vertices[i + 1];
-                vertices[i + 2] = Math.sin(x * 0.05) * Math.cos(y * 0.08) * 5 + 
-                                  Math.sin(x * 0.02) * 3;
-            }
-            groundGeometry.computeVertexNormals();
-
-            const groundMeshMaterial = new THREE.MeshStandardMaterial({ 
-                color: 0x688d57,
-                roughness: 0.9
-            });
-            
-            const ground = new THREE.Mesh(groundGeometry, groundMeshMaterial);
-            ground.rotation.x = -Math.PI / 2;
-            ground.receiveShadow = true;
-            scene.add(ground);
-
-            // Physics ground
-            const groundBody = new CANNON.Body({
-                mass: 0,
-                shape: new CANNON.Plane(),
-                material: groundMaterial
-            });
-            groundBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), -Math.PI / 2);
-            world.addBody(groundBody);
-        }
-
         // Create Road
-        function createRoad() {
-            const roadGeometry = new THREE.PlaneGeometry(12, 200);
-            const roadMaterial = new THREE.MeshStandardMaterial({ 
-                color: 0x444444,
-                roughness: 0.8
-            });
-            const road = new THREE.Mesh(roadGeometry, roadMaterial);
-            road.rotation.x = -Math.PI / 2;
-            road.position.y = 0.02;
-            road.receiveShadow = true;
-            scene.add(road);
+        const roadGeometry = new THREE.PlaneGeometry(15, 250);
+        const roadMaterial = new THREE.MeshStandardMaterial({ 
+            color: 0x3a3a3a,
+            roughness: 0.7
+        });
+        const road = new THREE.Mesh(roadGeometry, roadMaterial);
+        road.rotation.x = -Math.PI / 2;
+        road.position.y = 0.05;
+        road.receiveShadow = true;
+        scene.add(road);
 
-            // Road lines
-            for (let i = -90; i < 90; i += 10) {
-                const lineGeometry = new THREE.PlaneGeometry(0.3, 4);
-                const lineMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
-                const line = new THREE.Mesh(lineGeometry, lineMaterial);
-                line.rotation.x = -Math.PI / 2;
-                line.position.set(0, 0.03, i);
-                scene.add(line);
-            }
+        // Road markings
+        for (let i = -120; i < 120; i += 12) {
+            const lineGeometry = new THREE.PlaneGeometry(0.4, 5);
+            const lineMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+            const line = new THREE.Mesh(lineGeometry, lineMaterial);
+            line.rotation.x = -Math.PI / 2;
+            line.position.set(0, 0.06, i);
+            scene.add(line);
         }
 
-        // Create Obstacles
-        function createObstacles() {
-            // Ramps
-            const rampGeometry = new THREE.BoxGeometry(10, 2, 15);
-            const rampMaterial = new THREE.MeshStandardMaterial({ color: 0x8b7355 });
-            
-            const ramp1 = new THREE.Mesh(rampGeometry, rampMaterial);
-            ramp1.position.set(20, 0.5, -30);
-            ramp1.rotation.x = -0.3;
-            ramp1.castShadow = true;
-            ramp1.receiveShadow = true;
-            scene.add(ramp1);
+        // Create obstacles and ramps
+        function createObjects() {
+            // Ramp
+            const rampGeo = new THREE.BoxGeometry(12, 1, 18);
+            const rampMat = new THREE.MeshStandardMaterial({ color: 0xa0826d });
+            const ramp = new THREE.Mesh(rampGeo, rampMat);
+            ramp.position.set(0, 0, -40);
+            ramp.rotation.x = 0.25;
+            ramp.castShadow = true;
+            ramp.receiveShadow = true;
+            scene.add(ramp);
 
             // Barriers
-            for (let i = 0; i < 5; i++) {
-                const barrierGeometry = new THREE.BoxGeometry(0.5, 1, 3);
-                const barrierMaterial = new THREE.MeshStandardMaterial({ 
-                    color: i % 2 === 0 ? 0xff0000 : 0xffffff 
+            for (let i = 0; i < 8; i++) {
+                const barrierGeo = new THREE.BoxGeometry(0.6, 1.2, 2);
+                const barrierMat = new THREE.MeshStandardMaterial({ 
+                    color: i % 2 === 0 ? 0xee3333 : 0xffffff 
                 });
-                const barrier = new THREE.Mesh(barrierGeometry, barrierMaterial);
-                barrier.position.set(-25 + i * 2, 0.5, 40);
+                const barrier = new THREE.Mesh(barrierGeo, barrierMat);
+                barrier.position.set(-6 + (i % 4) * 4, 0.6, 50 + Math.floor(i / 4) * 8);
                 barrier.castShadow = true;
                 barrier.receiveShadow = true;
                 scene.add(barrier);
 
-                // Physics body for barrier
                 const barrierBody = new CANNON.Body({
-                    mass: 50,
-                    shape: new CANNON.Box(new CANNON.Vec3(0.25, 0.5, 1.5))
+                    mass: 80,
+                    shape: new CANNON.Box(new CANNON.Vec3(0.3, 0.6, 1))
                 });
-                barrierBody.position.set(barrier.position.x, barrier.position.y, barrier.position.z);
+                barrierBody.position.copy(barrier.position);
                 world.addBody(barrierBody);
+            }
+
+            // Trees
+            for (let i = 0; i < 12; i++) {
+                const angle = (i / 12) * Math.PI * 2;
+                const radius = 90 + Math.random() * 20;
+                const x = Math.cos(angle) * radius;
+                const z = Math.sin(angle) * radius;
+
+                // Trunk
+                const trunkGeo = new THREE.CylinderGeometry(0.6, 0.8, 5, 8);
+                const trunkMat = new THREE.MeshStandardMaterial({ color: 0x4a3526 });
+                const trunk = new THREE.Mesh(trunkGeo, trunkMat);
+                trunk.position.set(x, 2.5, z);
+                trunk.castShadow = true;
+                trunk.receiveShadow = true;
+                scene.add(trunk);
+
+                // Foliage
+                const foliageGeo = new THREE.ConeGeometry(3.5, 7, 8);
+                const foliageMat = new THREE.MeshStandardMaterial({ color: 0x2a4a1a });
+                const foliage = new THREE.Mesh(foliageGeo, foliageMat);
+                foliage.position.set(x, 7, z);
+                foliage.castShadow = true;
+                scene.add(foliage);
             }
         }
 
-        updateLoading(80);
+        createObjects();
+        updateLoading(75);
 
-        // Create Vehicle with Soft-Body Elements
+        // Vehicle Class
         class Vehicle {
             constructor() {
-                this.group = new THREE.Group();
+                this.mesh = new THREE.Group();
                 this.damage = 0;
                 this.maxDamage = 100;
                 
-                // Car body physics
-                this.chassisBody = new CANNON.Body({
-                    mass: 1200,
-                    shape: new CANNON.Box(new CANNON.Vec3(1, 0.5, 2)),
-                    position: new CANNON.Vec3(0, 3, 0)
+                // Physics body
+                this.body = new CANNON.Body({
+                    mass: 1500,
+                    shape: new CANNON.Box(new CANNON.Vec3(1, 0.6, 2.2)),
+                    position: new CANNON.Vec3(0, 5, 0)
                 });
-                world.addBody(this.chassisBody);
-
-                // Visual mesh
-                this.createVisuals();
+                this.body.linearDamping = 0.3;
+                this.body.angularDamping = 0.5;
+                world.addBody(this.body);
                 
-                // Wheels
-                this.wheels = [];
-                this.wheelBodies = [];
+                this.createMesh();
                 this.createWheels();
-                
-                scene.add(this.group);
+                scene.add(this.mesh);
 
-                // Vehicle properties
-                this.engineForce = 0;
-                this.brakeForce = 0;
-                this.steeringAngle = 0;
-                this.maxEngineForce = 2000;
-                this.maxBrakeForce = 1000;
-                this.maxSteerAngle = 0.5;
+                this.previousVelocity = new CANNON.Vec3();
             }
 
-            createVisuals() {
-                // Main body
-                const bodyGeometry = new THREE.BoxGeometry(2, 1, 4);
-                const bodyMaterial = new THREE.MeshStandardMaterial({ 
-                    color: 0xff6b35,
+            createMesh() {
+                // Car body
+                const bodyGeo = new THREE.BoxGeometry(2.2, 1.2, 4.5);
+                const bodyMat = new THREE.MeshStandardMaterial({ 
+                    color: 0xff4500,
                     metalness: 0.7,
                     roughness: 0.3
                 });
-                this.bodyMesh = new THREE.Mesh(bodyGeometry, bodyMaterial);
+                this.bodyMesh = new THREE.Mesh(bodyGeo, bodyMat);
                 this.bodyMesh.castShadow = true;
-                this.bodyMesh.receiveShadow = true;
-                this.group.add(this.bodyMesh);
+                this.mesh.add(this.bodyMesh);
 
                 // Roof
-                const roofGeometry = new THREE.BoxGeometry(1.8, 0.7, 2);
-                const roofMaterial = new THREE.MeshStandardMaterial({ 
-                    color: 0x333333,
+                const roofGeo = new THREE.BoxGeometry(2, 0.8, 2.5);
+                const roofMat = new THREE.MeshStandardMaterial({ 
+                    color: 0x2a2a2a,
                     metalness: 0.6,
                     roughness: 0.4
                 });
-                const roof = new THREE.Mesh(roofGeometry, roofMaterial);
-                roof.position.y = 0.85;
-                roof.position.z = -0.3;
+                const roof = new THREE.Mesh(roofGeo, roofMat);
+                roof.position.y = 1;
+                roof.position.z = -0.4;
                 roof.castShadow = true;
-                this.group.add(roof);
+                this.mesh.add(roof);
 
-                // Windows
-                const windowMaterial = new THREE.MeshStandardMaterial({ 
-                    color: 0x6dd5fa,
+                // Windshield
+                const windshieldGeo = new THREE.BoxGeometry(1.9, 0.7, 1.2);
+                const windshieldMat = new THREE.MeshStandardMaterial({ 
+                    color: 0x88ccff,
                     metalness: 0.9,
                     roughness: 0.1,
                     transparent: true,
-                    opacity: 0.5
+                    opacity: 0.4
                 });
-                
-                const frontWindowGeometry = new THREE.BoxGeometry(1.7, 0.6, 0.8);
-                const frontWindow = new THREE.Mesh(frontWindowGeometry, windowMaterial);
-                frontWindow.position.set(0, 0.85, 0.8);
-                this.group.add(frontWindow);
+                const windshield = new THREE.Mesh(windshieldGeo, windshieldMat);
+                windshield.position.set(0, 1, 0.8);
+                this.mesh.add(windshield);
 
                 // Hood
-                const hoodGeometry = new THREE.BoxGeometry(1.6, 0.3, 1.5);
-                const hoodMaterial = new THREE.MeshStandardMaterial({ 
-                    color: 0xff7f50,
+                const hoodGeo = new THREE.BoxGeometry(1.8, 0.4, 2);
+                const hoodMat = new THREE.MeshStandardMaterial({ 
+                    color: 0xff5722,
                     metalness: 0.8,
                     roughness: 0.2
                 });
-                const hood = new THREE.Mesh(hoodGeometry, hoodMaterial);
-                hood.position.set(0, 0.65, 1.6);
+                const hood = new THREE.Mesh(hoodGeo, hoodMat);
+                hood.position.set(0, 0.8, 1.8);
                 hood.castShadow = true;
-                this.group.add(hood);
+                this.mesh.add(hood);
             }
 
             createWheels() {
-                const carPos = this.chassisBody.position;
-                const wheelPositions = [
-                    { x: -1, z: 1.3 },
-                    { x: 1, z: 1.3 },
-                    { x: -1, z: -1.3 },
-                    { x: 1, z: -1.3 }
+                this.wheels = [];
+                this.wheelBodies = [];
+                
+                const positions = [
+                    { x: -1.2, z: 1.5 },
+                    { x: 1.2, z: 1.5 },
+                    { x: -1.2, z: -1.5 },
+                    { x: 1.2, z: -1.5 }
                 ];
 
-                wheelPositions.forEach((pos, index) => {
-                    // Visual wheel
-                    const wheelGeometry = new THREE.CylinderGeometry(0.4, 0.4, 0.3, 16);
-                    const wheelMaterial = new THREE.MeshStandardMaterial({ 
-                        color: 0x1a1a1a,
+                positions.forEach(pos => {
+                    // Visual
+                    const wheelGeo = new THREE.CylinderGeometry(0.45, 0.45, 0.35, 20);
+                    const wheelMat = new THREE.MeshStandardMaterial({ 
+                        color: 0x0a0a0a,
                         roughness: 0.9
                     });
-                    const wheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
+                    const wheel = new THREE.Mesh(wheelGeo, wheelMat);
                     wheel.rotation.z = Math.PI / 2;
                     wheel.castShadow = true;
                     this.wheels.push(wheel);
-                    this.group.add(wheel);
+                    this.mesh.add(wheel);
 
-                    // Physics wheel
+                    // Physics (spheres for simplicity)
                     const wheelBody = new CANNON.Body({
-                        mass: 30,
-                        shape: new CANNON.Sphere(0.4),
-                        material: wheelMaterial
+                        mass: 40,
+                        shape: new CANNON.Sphere(0.45),
+                        position: new CANNON.Vec3(pos.x, 4, pos.z)
                     });
-                    wheelBody.position.set(
-                        carPos.x + pos.x,
-                        carPos.y - 0.5,
-                        carPos.z + pos.z
-                    );
+                    wheelBody.linearDamping = 0.4;
                     world.addBody(wheelBody);
                     this.wheelBodies.push(wheelBody);
 
-                    // Spring constraint to chassis
-                    const spring = new CANNON.Spring(this.chassisBody, wheelBody, {
-                        restLength: 1,
-                        stiffness: 500,
-                        damping: 10,
-                        localAnchorA: new CANNON.Vec3(pos.x, -0.7, pos.z),
-                        localAnchorB: new CANNON.Vec3(0, 0, 0)
-                    });
-                    
-                    world.addEventListener('postStep', () => {
-                        spring.applyForce();
-                    }0, 0),
-                        pivotB: new CANNON.Vec3(0, 0, 0),
-                        axisB: new CANNON.Vec3(1, 0, 0)
-                    });
+                    // Constraint
+                    const constraint = new CANNON.PointToPointConstraint(
+                        this.body,
+                        new CANNON.Vec3(pos.x, -0.6, pos.z),
+                        wheelBody,
+                        new CANNON.Vec3(0, 0, 0)
+                    );
                     world.addConstraint(constraint);
                 });
             }
 
             update() {
-                // Update visual position from physics
-                this.group.position.copy(this.chassisBody.position);
-                this.group.quaternion.copy(this.chassisBody.quaternion);
+                // Sync mesh with physics
+                this.mesh.position.copy(this.body.position);
+                this.mesh.quaternion.copy(this.body.quaternion);
 
-                // Update wheel positions
-                this.wheels.forEach((wheel, index) => {
-                    wheel.position.copy(this.wheelBodies[index].position);
-                    wheel.position.sub(this.group.position);
-                    wheel.quaternion.copy(this.wheelBodies[index].quaternion);
+                // Update wheels
+                this.wheels.forEach((wheel, i) => {
+                    const wb = this.wheelBodies[i];
+                    wheel.position.set(
+                        wb.position.x - this.body.position.x,
+                        wb.position.y - this.body.position.y,
+                        wb.position.z - this.body.position.z
+                    );
+                    wheel.quaternion.copy(wb.quaternion);
                 });
 
-                // Apply engine force
-                if (this.engineForce !== 0) {
-                    const force = new CANNON.Vec3(
-                        Math.sin(this.chassisBody.quaternion.toEuler().y) * this.engineForce,
-                        0,
-                        Math.cos(this.chassisBody.quaternion.toEuler().y) * this.engineForce
-                    );
-                    this.chassisBody.applyForce(force, new CANNON.Vec3(0, 0, 0));
-                }
-
-                // Calculate damage from velocity changes
-                const speed = this.chassisBody.velocity.length();
-                if (speed > 15) {
-                    this.damage += 0.1;
+                // Damage calculation
+                const velocityChange = this.body.velocity.vsub(this.previousVelocity).length();
+                if (velocityChange > 5) {
+                    this.damage += velocityChange * 0.5;
                     this.damage = Math.min(this.damage, this.maxDamage);
                 }
+                this.previousVelocity.copy(this.body.velocity);
 
                 // Update damage bar
-                const integrity = 100 - (this.damage / this.maxDamage) * 100;
+                const integrity = Math.max(0, 100 - (this.damage / this.maxDamage) * 100);
                 damageBar.style.width = integrity + '%';
                 
-                // Apply damage effects
-                if (this.damage > 50) {
+                if (this.damage > 60) {
                     this.bodyMesh.material.color.setHex(0x8b4513);
                 }
 
-                // Update speed display
-                const kmh = Math.round(speed * 3.6);
-                speedEl.textContent = kmh;
+                // Update speedometer
+                const speed = this.body.velocity.length();
+                speedEl.textContent = Math.round(speed * 3.6);
             }
 
-            applyControl(engineForce, brakeForce, steerAngle) {
-                this.engineForce = engineForce;
-                this.brakeForce = brakeForce;
-                this.steeringAngle = steerAngle;
+            applyForces(forward, backward, left, right, brake) {
+                const carRotation = new THREE.Euler().setFromQuaternion(this.body.quaternion);
+                const forwardDir = new CANNON.Vec3(
+                    Math.sin(carRotation.y),
+                    0,
+                    Math.cos(carRotation.y)
+                );
+
+                // Engine force
+                if (forward) {
+                    const force = forwardDir.scale(3500);
+                    this.body.applyForce(force, this.body.position);
+                }
+                if (backward) {
+                    const force = forwardDir.scale(-2000);
+                    this.body.applyForce(force, this.body.position);
+                }
+
+                // Steering torque
+                if (left) {
+                    this.body.angularVelocity.y += 0.05;
+                }
+                if (right) {
+                    this.body.angularVelocity.y -= 0.05;
+                }
+
+                // Handbrake
+                if (brake) {
+                    this.body.velocity.scale(0.95, this.body.velocity);
+                }
             }
 
             reset() {
-                this.chassisBody.position.set(0, 3, 0);
-                this.chassisBody.velocity.set(0, 0, 0);
-                this.chassisBody.angularVelocity.set(0, 0, 0);
-                this.chassisBody.quaternion.set(0, 0, 0, 1);
-                
-                this.wheelBodies.forEach((wheelBody, index) => {
+                this.body.position.set(0, 5, 0);
+                this.body.velocity.set(0, 0, 0);
+                this.body.angularVelocity.set(0, 0, 0);
+                this.body.quaternion.setFromEuler(0, 0, 0);
+
+                this.wheelBodies.forEach((wb, i) => {
                     const pos = [
-                        { x: -1, z: 1.3 },
-                        { x: 1, z: 1.3 },
-                        { x: -1, z: -1.3 },
-                        { x: 1, z: -1.3 }
-                    ][index];
-                    wheelBody.position.set(pos.x, 2.5, pos.z);
-                    wheelBody.velocity.set(0, 0, 0);
-                    wheelBody.angularVelocity.set(0, 0, 0);
+                        { x: -1.2, z: 1.5 },
+                        { x: 1.2, z: 1.5 },
+                        { x: -1.2, z: -1.5 },
+                        { x: 1.2, z: -1.5 }
+                    ][i];
+                    wb.position.set(pos.x, 4, pos.z);
+                    wb.velocity.set(0, 0, 0);
+                    wb.angularVelocity.set(0, 0, 0);
                 });
 
                 this.damage = 0;
+                this.previousVelocity.set(0, 0, 0);
                 damageBar.style.width = '100%';
-                this.bodyMesh.material.color.setHex(0xff6b35);
+                this.bodyMesh.material.color.setHex(0xff4500);
             }
         }
 
         const vehicle = new Vehicle();
-        
-        createTerrain();
-        createRoad();
-        createObstacles();
+        updateLoading(90);
+
+        // Add some props
+        for (let i = 0; i < 6; i++) {
+            const boxGeo = new THREE.BoxGeometry(2, 2, 2);
+            const boxMat = new THREE.MeshStandardMaterial({ 
+                color: Math.random() > 0.5 ? 0x8b6914 : 0x666666 
+            });
+            const box = new THREE.Mesh(boxGeo, boxMat);
+            box.position.set(
+                (Math.random() - 0.5) * 30,
+                1,
+                -20 + i * 15
+            );
+            box.castShadow = true;
+            box.receiveShadow = true;
+            scene.add(box);
+
+            const boxBody = new CANNON.Body({
+                mass: 100,
+                shape: new CANNON.Box(new CANNON.Vec3(1, 1, 1))
+            });
+            boxBody.position.copy(box.position);
+            world.addBody(boxBody);
+        }
 
         updateLoading(100);
-
-        // Camera modes
-        let cameraMode = 0; // 0=follow, 1=chase, 2=top
-        const cameraModes = ['Follow', 'Chase', 'Top View'];
-
-        function updateCamera() {
-            const carPos = vehicle.chassisBody.position;
-            const carRot = vehicle.chassisBody.quaternion;
-            const euler = carRot.toEuler();
-
-            if (cameraMode === 0) {
-                // Follow camera
-                const distance = 12;
-                const height = 5;
-                const camX = carPos.x - Math.sin(euler.y) * distance;
-                const camZ = carPos.z - Math.cos(euler.y) * distance;
-                
-                camera.position.x += (camX - camera.position.x) * 0.1;
-                camera.position.y += (carPos.y + height - camera.position.y) * 0.1;
-                camera.position.z += (camZ - camera.position.z) * 0.1;
-                
-                camera.lookAt(carPos.x, carPos.y + 1, carPos.z);
-            } else if (cameraMode === 1) {
-                // Chase camera (closer)
-                const distance = 8;
-                const height = 3;
-                const camX = carPos.x - Math.sin(euler.y) * distance;
-                const camZ = carPos.z - Math.cos(euler.y) * distance;
-                
-                camera.position.x += (camX - camera.position.x) * 0.15;
-                camera.position.y += (carPos.y + height - camera.position.y) * 0.15;
-                camera.position.z += (camZ - camera.position.z) * 0.15;
-                
-                camera.lookAt(carPos.x, carPos.y, carPos.z);
-            } else {
-                // Top view
-                camera.position.x = carPos.x;
-                camera.position.y = carPos.y + 40;
-                camera.position.z = carPos.z;
-                camera.lookAt(carPos.x, carPos.y, carPos.z - 10);
-            }
-        }
 
         // Input
         const keys = { 
@@ -531,17 +509,74 @@
             if (e.code === 'Space') keys.space = false;
         });
 
-        // Button handlers
+        // Buttons
         document.getElementById('resetBtn').addEventListener('click', () => vehicle.reset());
         document.getElementById('cameraBtn').addEventListener('click', () => {
             cameraMode = (cameraMode + 1) % 3;
             cameraModeEl.textContent = cameraModes[cameraMode];
         });
         document.getElementById('crashBtn').addEventListener('click', () => {
-            // Launch vehicle for crash test
-            vehicle.chassisBody.velocity.set(0, 10, 30);
-            vehicle.chassisBody.angularVelocity.set(2, 1, 0);
+            vehicle.body.velocity.set(0, 15, 40);
+            vehicle.body.angularVelocity.set(3, 2, 1);
         });
+
+        // Touch controls
+        for (const btn of document.querySelectorAll('.touch button')) {
+            const key = btn.getAttribute('data-key');
+            btn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                keys[key] = true;
+            }, { passive: false });
+            btn.addEventListener('touchend', () => {
+                keys[key] = false;
+            });
+            btn.addEventListener('mousedown', () => keys[key] = true);
+            btn.addEventListener('mouseup', () => keys[key] = false);
+        }
+
+        // Camera modes
+        let cameraMode = 0;
+        const cameraModes = ['Follow', 'Chase', 'Top View'];
+
+        function updateCamera() {
+            const carPos = vehicle.body.position;
+            const carQuat = vehicle.body.quaternion;
+            const euler = new THREE.Euler().setFromQuaternion(
+                new THREE.Quaternion(carQuat.x, carQuat.y, carQuat.z, carQuat.w)
+            );
+
+            if (cameraMode === 0) {
+                // Follow camera
+                const dist = 15;
+                const height = 7;
+                const targetX = carPos.x - Math.sin(euler.y) * dist;
+                const targetZ = carPos.z - Math.cos(euler.y) * dist;
+                
+                camera.position.x += (targetX - camera.position.x) * 0.08;
+                camera.position.y += (carPos.y + height - camera.position.y) * 0.08;
+                camera.position.z += (targetZ - camera.position.z) * 0.08;
+                
+                camera.lookAt(carPos.x, carPos.y + 1, carPos.z);
+            } else if (cameraMode === 1) {
+                // Chase (closer)
+                const dist = 10;
+                const height = 4;
+                const targetX = carPos.x - Math.sin(euler.y) * dist;
+                const targetZ = carPos.z - Math.cos(euler.y) * dist;
+                
+                camera.position.x += (targetX - camera.position.x) * 0.12;
+                camera.position.y += (carPos.y + height - camera.position.y) * 0.12;
+                camera.position.z += (targetZ - camera.position.z) * 0.12;
+                
+                camera.lookAt(carPos.x, carPos.y, carPos.z);
+            } else {
+                // Top view
+                camera.position.x += (carPos.x - camera.position.x) * 0.1;
+                camera.position.y = 50;
+                camera.position.z += (carPos.z - camera.position.z) * 0.1;
+                camera.lookAt(carPos.x, 0, carPos.z);
+            }
+        }
 
         // Window resize
         window.addEventListener('resize', () => {
@@ -550,10 +585,11 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
 
-        // Game Loop
+        // Game loop
         let lastTime = performance.now();
         let frameCount = 0;
-        let fpsTime = 0;
+        let fpsTimer = 0;
+        const fixedTimeStep = 1 / 60;
 
         function animate(time) {
             requestAnimationFrame(animate);
@@ -562,20 +598,10 @@
             lastTime = time;
 
             // Update physics
-            world.step(1 / 60, dt, 3);
+            world.step(fixedTimeStep, dt, 3);
 
-            // Apply vehicle controls
-            let engineForce = 0;
-            let brakeForce = 0;
-            let steerAngle = 0;
-
-            if (keys.up) engineForce = vehicle.maxEngineForce;
-            if (keys.down) engineForce = -vehicle.maxEngineForce * 0.5;
-            if (keys.space) brakeForce = vehicle.maxBrakeForce;
-            if (keys.left) steerAngle = vehicle.maxSteerAngle;
-            if (keys.right) steerAngle = -vehicle.maxSteerAngle;
-
-            vehicle.applyControl(engineForce, brakeForce, steerAngle);
+            // Apply controls
+            vehicle.applyForces(keys.up, keys.down, keys.left, keys.right, keys.space);
             vehicle.update();
 
             // Update camera
@@ -586,16 +612,17 @@
 
             // FPS counter
             frameCount++;
-            fpsTime += dt;
-            if (fpsTime >= 1) {
+            fpsTimer += dt;
+            if (fpsTimer >= 1) {
                 fpsEl.textContent = frameCount;
                 frameCount = 0;
-                fpsTime = 0;
+                fpsTimer = 0;
             }
         }
 
+        // Start game
+        console.log('Game initialized');
         animate(performance.now());
-        } // End initGame
     </script>
 </body>
 </html>
