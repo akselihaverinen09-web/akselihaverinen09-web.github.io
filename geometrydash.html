@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geometry Dash - Akseli Haverinen</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+            color: #f8fafc;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .back-link {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: #f8fafc;
+            text-decoration: none;
+            font-size: 1rem;
+            padding: 10px 18px;
+            border-radius: 999px;
+            background: rgba(248, 250, 252, 0.16);
+            transition: background 0.2s ease, transform 0.2s ease;
+        }
+
+        .back-link:hover {
+            background: rgba(248, 250, 252, 0.25);
+            transform: translateX(-3px);
+        }
+
+        .game-wrap {
+            width: min(920px, 100%);
+            background: rgba(15, 23, 42, 0.55);
+            border: 1px solid rgba(148, 163, 184, 0.35);
+            border-radius: 18px;
+            padding: 16px;
+            box-shadow: 0 14px 40px rgba(2, 6, 23, 0.45);
+        }
+
+        .game-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        h1 {
+            font-size: 1.35rem;
+            font-weight: 700;
+        }
+
+        .stats {
+            display: flex;
+            gap: 18px;
+            font-weight: 600;
+        }
+
+        .canvas-frame {
+            border-radius: 12px;
+            overflow: hidden;
+            border: 2px solid rgba(56, 189, 248, 0.5);
+            background: #0b1120;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            background: linear-gradient(180deg, #1d4ed8 0%, #0ea5e9 42%, #38bdf8 100%);
+        }
+
+        .controls {
+            margin-top: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .hint {
+            color: #e2e8f0;
+            font-size: 0.95rem;
+        }
+
+        .restart-btn {
+            border: none;
+            border-radius: 999px;
+            padding: 10px 16px;
+            font-weight: 700;
+            cursor: pointer;
+            color: #0f172a;
+            background: #fcd34d;
+            transition: transform 0.15s ease, filter 0.15s ease;
+        }
+
+        .restart-btn:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.03);
+        }
+
+        .footer-text {
+            margin-top: 12px;
+            font-size: 0.9rem;
+            color: #cbd5e1;
+            text-align: center;
+        }
+
+        @media (max-width: 700px) {
+            .game-wrap {
+                padding: 12px;
+            }
+
+            h1 {
+                font-size: 1.1rem;
+            }
+
+            .stats {
+                gap: 12px;
+                font-size: 0.92rem;
+            }
+
+            .hint {
+                font-size: 0.88rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="projektit.html" class="back-link">< Takaisin projekteihin</a>
+
+    <section class="game-wrap">
+        <div class="game-head">
+            <h1>Geometry Dash - Mini peli</h1>
+            <div class="stats">
+                <span>Pisteet: <strong id="score">0</strong></span>
+                <span>Paras: <strong id="best">0</strong></span>
+            </div>
+        </div>
+
+        <div class="canvas-frame">
+            <canvas id="gameCanvas" width="880" height="360"></canvas>
+        </div>
+
+        <div class="controls">
+            <p class="hint">Hyppaa valilyonnilla, nuoli ylos, klikkauksella tai kosketuksella. Varo piikkeja.</p>
+            <button class="restart-btn" id="restartBtn" type="button">Aloita alusta</button>
+        </div>
+    </section>
+
+    <p class="footer-text">Akseli Haverinen © 2026</p>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const scoreEl = document.getElementById('score');
+        const bestEl = document.getElementById('best');
+        const restartBtn = document.getElementById('restartBtn');
+
+        const world = {
+            gravity: 0.9,
+            speed: 6,
+            obstacleGapMin: 180,
+            obstacleGapMax: 320,
+            groundY: canvas.height - 52,
+            frame: 0,
+            score: 0,
+            best: Number(localStorage.getItem('gd-best-score') || 0),
+            gameOver: false,
+            started: false
+        };
+
+        bestEl.textContent = world.best;
+
+        const player = {
+            x: 80,
+            y: world.groundY - 34,
+            size: 34,
+            yVelocity: 0,
+            jumping: false,
+            rotation: 0
+        };
+
+        const obstacles = [];
+
+        function randomGap() {
+            return Math.floor(Math.random() * (world.obstacleGapMax - world.obstacleGapMin + 1)) + world.obstacleGapMin;
+        }
+
+        function spawnObstacle(xPos) {
+            obstacles.push({
+                x: xPos,
+                width: 34,
+                height: 36 + Math.floor(Math.random() * 26)
+            });
+        }
+
+        function resetGame() {
+            world.frame = 0;
+            world.score = 0;
+            world.gameOver = false;
+            world.started = false;
+            obstacles.length = 0;
+
+            player.y = world.groundY - player.size;
+            player.yVelocity = 0;
+            player.jumping = false;
+            player.rotation = 0;
+
+            scoreEl.textContent = '0';
+            spawnObstacle(canvas.width + 220);
+            draw();
+        }
+
+        function jump() {
+            if (!world.started) {
+                world.started = true;
+            }
+
+            if (world.gameOver) {
+                return;
+            }
+
+            if (!player.jumping) {
+                player.yVelocity = -14;
+                player.jumping = true;
+            }
+        }
+
+        function updatePlayer() {
+            player.yVelocity += world.gravity;
+            player.y += player.yVelocity;
+
+            if (player.jumping) {
+                player.rotation += 0.12;
+            }
+
+            if (player.y >= world.groundY - player.size) {
+                player.y = world.groundY - player.size;
+                player.yVelocity = 0;
+                player.jumping = false;
+                player.rotation = 0;
+            }
+        }
+
+        function updateObstacles() {
+            for (let i = obstacles.length - 1; i >= 0; i--) {
+                const obs = obstacles[i];
+                obs.x -= world.speed;
+
+                if (obs.x + obs.width < 0) {
+                    obstacles.splice(i, 1);
+                    world.score += 1;
+                    scoreEl.textContent = String(world.score);
+                }
+            }
+
+            const lastObstacle = obstacles[obstacles.length - 1];
+            if (lastObstacle && lastObstacle.x < canvas.width - randomGap()) {
+                spawnObstacle(canvas.width + Math.floor(Math.random() * 100));
+            }
+        }
+
+        function checkCollision() {
+            const px = player.x;
+            const py = player.y;
+            const ps = player.size;
+
+            for (const obs of obstacles) {
+                const ox = obs.x;
+                const oy = world.groundY - obs.height;
+
+                if (px < ox + obs.width && px + ps > ox && py < oy + obs.height && py + ps > oy) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function endGame() {
+            world.gameOver = true;
+            if (world.score > world.best) {
+                world.best = world.score;
+                localStorage.setItem('gd-best-score', String(world.best));
+                bestEl.textContent = String(world.best);
+            }
+        }
+
+        function drawBackground() {
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.18)';
+            for (let i = 0; i < 8; i++) {
+                const x = ((i * 140) - (world.frame * (world.speed * 0.35)) % 140) - 20;
+                ctx.fillRect(x, 70 + (i % 3) * 40, 70, 12);
+            }
+        }
+
+        function drawGround() {
+            ctx.fillStyle = '#0f172a';
+            ctx.fillRect(0, world.groundY, canvas.width, canvas.height - world.groundY);
+
+            ctx.fillStyle = '#1e293b';
+            for (let i = 0; i < 24; i++) {
+                const x = ((i * 42) - (world.frame * world.speed) % 42);
+                ctx.fillRect(x, world.groundY + 6, 28, 7);
+            }
+        }
+
+        function drawPlayer() {
+            ctx.save();
+            ctx.translate(player.x + player.size / 2, player.y + player.size / 2);
+            ctx.rotate(player.rotation);
+
+            ctx.fillStyle = '#f8fafc';
+            ctx.fillRect(-player.size / 2, -player.size / 2, player.size, player.size);
+
+            ctx.fillStyle = '#0ea5e9';
+            ctx.fillRect(-player.size / 2 + 5, -player.size / 2 + 5, player.size - 10, player.size - 10);
+
+            ctx.fillStyle = '#0f172a';
+            ctx.fillRect(2, -4, 7, 7);
+
+            ctx.restore();
+        }
+
+        function drawObstacles() {
+            for (const obs of obstacles) {
+                const x = obs.x;
+                const y = world.groundY - obs.height;
+
+                ctx.fillStyle = '#f8fafc';
+                ctx.beginPath();
+                ctx.moveTo(x, world.groundY);
+                ctx.lineTo(x + obs.width / 2, y);
+                ctx.lineTo(x + obs.width, world.groundY);
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.fillStyle = '#7dd3fc';
+                ctx.beginPath();
+                ctx.moveTo(x + 8, world.groundY - 1);
+                ctx.lineTo(x + obs.width / 2, y + 12);
+                ctx.lineTo(x + obs.width - 8, world.groundY - 1);
+                ctx.closePath();
+                ctx.fill();
+            }
+        }
+
+        function drawOverlay() {
+            if (world.gameOver) {
+                ctx.fillStyle = 'rgba(2, 6, 23, 0.55)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                ctx.fillStyle = '#f8fafc';
+                ctx.textAlign = 'center';
+                ctx.font = '700 40px Segoe UI';
+                ctx.fillText('Game Over', canvas.width / 2, canvas.height / 2 - 24);
+
+                ctx.font = '600 22px Segoe UI';
+                ctx.fillText('Pisteet: ' + world.score, canvas.width / 2, canvas.height / 2 + 12);
+                ctx.font = '500 18px Segoe UI';
+                ctx.fillText('Paina Aloita alusta tai valilyontia', canvas.width / 2, canvas.height / 2 + 46);
+            } else if (!world.started) {
+                ctx.fillStyle = 'rgba(2, 6, 23, 0.35)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                ctx.fillStyle = '#f8fafc';
+                ctx.textAlign = 'center';
+                ctx.font = '600 24px Segoe UI';
+                ctx.fillText('Aloita painamalla valilyontia tai klikkaamalla', canvas.width / 2, canvas.height / 2);
+            }
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawBackground();
+            drawGround();
+            drawObstacles();
+            drawPlayer();
+            drawOverlay();
+        }
+
+        function tick() {
+            world.frame += 1;
+
+            if (world.started && !world.gameOver) {
+                updatePlayer();
+                updateObstacles();
+
+                if (checkCollision()) {
+                    endGame();
+                }
+            }
+
+            draw();
+            requestAnimationFrame(tick);
+        }
+
+        function handleInput(event) {
+            if (event.type === 'keydown') {
+                if (event.code !== 'Space' && event.code !== 'ArrowUp') {
+                    return;
+                }
+                event.preventDefault();
+            }
+
+            if (world.gameOver) {
+                resetGame();
+                world.started = true;
+                jump();
+                return;
+            }
+
+            jump();
+        }
+
+        document.addEventListener('keydown', handleInput);
+        canvas.addEventListener('mousedown', handleInput);
+        canvas.addEventListener('touchstart', function(event) {
+            event.preventDefault();
+            handleInput(event);
+        }, { passive: false });
+
+        restartBtn.addEventListener('click', resetGame);
+
+        resetGame();
+        tick();
+    </script>
+</body>
+</html>
