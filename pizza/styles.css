@@ -370,6 +370,14 @@ textarea:focus {
   color: #ff8b8f;
 }
 
+.order-message.warning {
+  color: #ffa726;
+}
+
+.order-message.info {
+  color: #64b5f6;
+}
+
 .contact-card p {
   margin: 0.45rem 0;
 }

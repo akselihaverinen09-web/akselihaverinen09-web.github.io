@@ -267,46 +267,57 @@ function maskCardNumber(value) {
   return `**** **** **** ${digits.slice(-4)}`;
 }
 
-function sendSMSConfirmation(phone, name, orderId, items, total, deliveryType, address) {
-  // Muodostetaan tekstiviestin sisältö
+// Backend API URL - muuta tämä tuotannossa oikeaan osoitteeseen
+const API_URL = 'http://localhost:3000';
+
+async function sendSMSConfirmation(phone, name, orderId, items, total, deliveryType, address) {
   const itemsList = items.map(item => `${item.qty}x ${item.name}`).join(", ");
   
-  const message = `
-Hei ${name}!
+  try {
+    console.log("📱 Lähetetään SMS...");
+    
+    const response = await fetch(`${API_URL}/api/send-sms`, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ 
+        phone, 
+        name, 
+        orderId, 
+        items,
+        total: formatPrice(total),
+        deliveryType, 
+        address 
+      })
+    });
 
-Kiitos tilauksestasi Napoli Now pizzeriasta! 🍕
-
-Tilausnumero: ${orderId}
-Pizzat: ${itemsList}
-Yhteensä: ${formatPrice(total)}
-
-Toimitustapa: ${deliveryType}
-${deliveryType === "Kotiinkuljetus" ? `Toimitusosoite: ${address}` : "Nouto: Pizzakatu 7, Helsinki"}
-
-Arvioitu toimitusaika: 30-45 min
-
-Tervetuloa uudelleen!
-- Napoli Now
-  `.trim();
-
-  // HUOM: Tämä on simuloitu SMS-lähetys.
-  // Oikea SMS-lähetys vaatisi backend-palvelimen ja SMS API:n (esim. Twilio, AWS SNS)
-  
-  console.log("═══════════════════════════════════");
-  console.log("📱 SMS LÄHETETTY");
-  console.log("═══════════════════════════════════");
-  console.log(`Vastaanottaja: ${phone}`);
-  console.log(`\nViesti:\n${message}`);
-  console.log("═══════════════════════════════════");
-  
-  // Voit korvata tämän oikealla SMS API:lla:
-  // await fetch('/api/send-sms', {
-  //   method: 'POST',
-  //   headers: { 'Content-Type': 'application/json' },
-  //   body: JSON.stringify({ phone, message })
-  // });
-  
-  return message;
+    const result = await response.json();
+    
+    if (result.success) {
+      console.log("✅ SMS lähetetty onnistuneesti!");
+      console.log("Message SID:", result.messageSid);
+      return { success: true, message: result.message };
+    } else {
+      console.error("❌ SMS-lähetys epäonnistui:", result.error);
+      return { success: false, error: result.error };
+    }
+    
+  } catch (error) {
+    console.error("❌ Virhe SMS-lähetyksessä:", error);
+    
+    // Fallback: Näytä konsoliin jos backend ei ole käytettävissä
+    console.log("═══════════════════════════════════");
+    console.log("⚠️  BACKEND EI KÄYTETTÄVISSÄ - SIMULOITU SMS");
+    console.log("═══════════════════════════════════");
+    console.log(`Vastaanottaja: ${phone}`);
+    console.log(`Tilausnumero: ${orderId}`);
+    console.log(`Pizzat: ${itemsList}`);
+    console.log("═══════════════════════════════════");
+    console.log("💡 Käynnistä backend: npm start");
+    
+    return { success: false, error: "Backend ei käytettävissä" };
+  }
 }
 
 menuGrid.addEventListener("click", (event) => {
@@ -353,7 +364,7 @@ cartItems.addEventListener("click", (event) => {
 
 orderType.addEventListener("change", toggleAddress);
 
-checkoutForm.addEventListener("submit", (event) => {
+checkoutForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   orderMessage.textContent = "";
   orderMessage.className = "order-message";
@@ -406,8 +417,12 @@ checkoutForm.addEventListener("submit", (event) => {
 
   saveJSON(ORDERS_KEY, orders);
 
+  // Show loading state
+  orderMessage.textContent = "Lähetetään tilausta ja SMS:ää...";
+  orderMessage.classList.add("info");
+
   // Lähetetään tekstiviesti asiakkaalle
-  sendSMSConfirmation(phone, name, orderId, lines, total, type, address);
+  const smsResult = await sendSMSConfirmation(phone, name, orderId, lines, total, type, address);
 
   cart = [];
   persistCart();
@@ -416,8 +431,16 @@ checkoutForm.addEventListener("submit", (event) => {
   checkoutForm.reset();
   toggleAddress();
 
-  orderMessage.textContent = `Tilaus vastaanotettu! Tekstiviesti lähetetty numeroon ${phone}`;
-  orderMessage.classList.add("success");
+  // Show result based on SMS status
+  if (smsResult.success) {
+    orderMessage.textContent = `✅ Tilaus vastaanotettu! SMS lähetetty numeroon ${phone}`;
+    orderMessage.classList.remove("info");
+    orderMessage.classList.add("success");
+  } else {
+    orderMessage.textContent = `⚠️ Tilaus vastaanotettu, mutta SMS-lähetys epäonnistui. Tarkista että backend on käynnissä.`;
+    orderMessage.classList.remove("info");
+    orderMessage.classList.add("warning");
+  }
 });
 
 // Modal toiminnallisuus
