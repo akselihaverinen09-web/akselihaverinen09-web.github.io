@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rally Sprint - Akseli Haverinen</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --sky: #f6efe2;
+            --ground: #d0dfc8;
+            --track: #343b3f;
+            --track-edge: #5f666b;
+            --accent: #ff6b35;
+            --panel: #1f2629;
+            --text: #f7f9fa;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: 'Trebuchet MS', 'Segoe UI', Tahoma, sans-serif;
+            background:
+                radial-gradient(circle at 12% 18%, #ffffff99 0, #ffffff00 32%),
+                radial-gradient(circle at 78% 82%, #c3dcb8 0, #9cbc90 32%, #7ea67a 100%);
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .back-link {
+            position: fixed;
+            top: 16px;
+            left: 16px;
+            text-decoration: none;
+            color: #f4f4f4;
+            background: #1f2629cc;
+            border-radius: 999px;
+            padding: 10px 16px;
+            border: 1px solid #ffffff30;
+            font-weight: 600;
+            transition: transform 0.2s ease, background 0.2s ease;
+        }
+
+        .back-link:hover {
+            transform: translateX(-2px);
+            background: #1f2629;
+        }
+
+        .wrap {
+            width: min(980px, 100%);
+            background: #11181bcc;
+            border: 1px solid #ffffff24;
+            border-radius: 20px;
+            box-shadow: 0 24px 60px #0000004d;
+            padding: 14px;
+        }
+
+        .top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            padding: 8px 6px 12px;
+        }
+
+        h1 {
+            font-size: 1.35rem;
+            letter-spacing: 0.02em;
+        }
+
+        .hud {
+            display: flex;
+            gap: 14px;
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+
+        .pill {
+            background: #ffffff14;
+            border: 1px solid #ffffff26;
+            border-radius: 999px;
+            padding: 6px 12px;
+        }
+
+        .frame {
+            border-radius: 14px;
+            overflow: hidden;
+            border: 2px solid #ffffff2b;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            background: var(--ground);
+        }
+
+        .controls {
+            margin-top: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .hint {
+            color: #e7ecef;
+            font-size: 0.92rem;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            border: none;
+            border-radius: 10px;
+            padding: 10px 14px;
+            font-weight: 700;
+            cursor: pointer;
+            color: #101517;
+            background: #f8d66d;
+        }
+
+        button.secondary {
+            background: #e5ecf0;
+        }
+
+        .touch {
+            margin-top: 12px;
+            display: none;
+            grid-template-columns: repeat(4, minmax(60px, 1fr));
+            gap: 8px;
+        }
+
+        .touch button {
+            min-height: 46px;
+            background: #ffffffd1;
+        }
+
+        .footer-text {
+            margin-top: 12px;
+            text-align: center;
+            color: #dce3e7;
+            font-size: 0.87rem;
+        }
+
+        @media (max-width: 860px) {
+            .touch {
+                display: grid;
+            }
+
+            h1 {
+                font-size: 1.15rem;
+            }
+
+            .hud {
+                font-size: 0.86rem;
+                gap: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a class="back-link" href="projektit.html"><- Takaisin projekteihin</a>
+
+    <section class="wrap">
+        <div class="top">
+            <h1>Rally Sprint - Stylized Top-Down</h1>
+            <div class="hud">
+                <span class="pill">Lap: <strong id="lap">1</strong>/3</span>
+                <span class="pill">Aika: <strong id="time">0.00</strong>s</span>
+                <span class="pill">Paras: <strong id="best">--</strong></span>
+                <span class="pill">Nopeus: <strong id="speed">0</strong></span>
+            </div>
+        </div>
+
+        <div class="frame">
+            <canvas id="game" width="940" height="520"></canvas>
+        </div>
+
+        <div class="controls">
+            <p class="hint">Aja nuolilla tai WASD: kiihdyta, jarruta, kaanna. Tavoite: 3 kierrosta mahdollisimman nopeasti.</p>
+            <div class="buttons">
+                <button id="restartBtn" type="button">Aloita alusta</button>
+                <button id="ghostBtn" class="secondary" type="button">Ratalinjat paalle/pois</button>
+            </div>
+        </div>
+
+        <div class="touch" aria-label="Touch controls">
+            <button data-key="left" type="button">LEFT</button>
+            <button data-key="right" type="button">RIGHT</button>
+            <button data-key="up" type="button">GAS</button>
+            <button data-key="down" type="button">BRAKE</button>
+        </div>
+    </section>
+
+    <p class="footer-text">Akseli Haverinen Copyright 2026</p>
+
+    <script>
+        const canvas = document.getElementById('game');
+        const ctx = canvas.getContext('2d');
+
+        const lapEl = document.getElementById('lap');
+        const timeEl = document.getElementById('time');
+        const bestEl = document.getElementById('best');
+        const speedEl = document.getElementById('speed');
+
+        const world = {
+            centerX: canvas.width / 2,
+            centerY: canvas.height / 2,
+            outerRx: 380,
+            outerRy: 210,
+            innerRx: 250,
+            innerRy: 95,
+            lapsTarget: 3,
+            lap: 1,
+            started: false,
+            finished: false,
+            elapsed: 0,
+            showRaceLine: true,
+            checkpointHit: [false, false, false, false],
+            best: Number(localStorage.getItem('rally-best-time') || 0)
+        };
+
+        const car = {
+            x: world.centerX,
+            y: world.centerY + 150,
+            angle: -Math.PI / 2,
+            speed: 0,
+            maxSpeed: 6.6,
+            accel: 0.13,
+            brake: 0.19,
+            drag: 0.97,
+            turnRate: 0.038
+        };
+
+        const keys = { up: false, down: false, left: false, right: false };
+        const cones = [];
+
+        for (let i = 0; i < 20; i++) {
+            const a = (Math.PI * 2 * i) / 20;
+            cones.push({
+                x: world.centerX + Math.cos(a) * (world.innerRx - 12),
+                y: world.centerY + Math.sin(a) * (world.innerRy - 10)
+            });
+            cones.push({
+                x: world.centerX + Math.cos(a + 0.14) * (world.outerRx + 8),
+                y: world.centerY + Math.sin(a + 0.14) * (world.outerRy + 8)
+            });
+        }
+
+        function formatTime(value) {
+            return value.toFixed(2) + 's';
+        }
+
+        function updateBest() {
+            if (world.best > 0) {
+                bestEl.textContent = formatTime(world.best);
+            } else {
+                bestEl.textContent = '--';
+            }
+        }
+
+        function resetRace() {
+            world.lap = 1;
+            world.started = false;
+            world.finished = false;
+            world.elapsed = 0;
+            world.checkpointHit = [false, false, false, false];
+
+            car.x = world.centerX;
+            car.y = world.centerY + 150;
+            car.angle = -Math.PI / 2;
+            car.speed = 0;
+
+            lapEl.textContent = String(world.lap);
+            timeEl.textContent = '0.00';
+            speedEl.textContent = '0';
+        }
+
+        function isOnTrack(x, y) {
+            const dx = x - world.centerX;
+            const dy = y - world.centerY;
+            const outer = (dx * dx) / (world.outerRx * world.outerRx) + (dy * dy) / (world.outerRy * world.outerRy) <= 1;
+            const inner = (dx * dx) / (world.innerRx * world.innerRx) + (dy * dy) / (world.innerRy * world.innerRy) < 1;
+            return outer && !inner;
+        }
+
+        function updateCheckpoints() {
+            const cx = car.x - world.centerX;
+            const cy = car.y - world.centerY;
+
+            if (cx > 0 && Math.abs(cy) < 70) {
+                world.checkpointHit[0] = true;
+            }
+            if (cy < 0 && Math.abs(cx) < 120) {
+                world.checkpointHit[1] = true;
+            }
+            if (cx < 0 && Math.abs(cy) < 70) {
+                world.checkpointHit[2] = true;
+            }
+            if (cy > 0 && Math.abs(cx) < 120) {
+                world.checkpointHit[3] = true;
+            }
+
+            const onStart = Math.abs(cy - 140) < 14 && Math.abs(cx) < 36;
+            const fullLoop = world.checkpointHit.every(Boolean);
+            if (onStart && fullLoop && world.started) {
+                world.lap += 1;
+                world.checkpointHit = [false, false, false, false];
+                lapEl.textContent = String(Math.min(world.lap, world.lapsTarget));
+
+                if (world.lap > world.lapsTarget) {
+                    world.finished = true;
+                    if (world.best === 0 || world.elapsed < world.best) {
+                        world.best = world.elapsed;
+                        localStorage.setItem('rally-best-time', String(world.best));
+                        updateBest();
+                    }
+                }
+            }
+        }
+
+        function updateCar() {
+            if (keys.up) {
+                car.speed += car.accel;
+                world.started = true;
+            }
+            if (keys.down) {
+                car.speed -= car.brake;
+            }
+
+            car.speed *= car.drag;
+            if (car.speed > car.maxSpeed) car.speed = car.maxSpeed;
+            if (car.speed < -2.2) car.speed = -2.2;
+
+            const steerPower = Math.min(Math.abs(car.speed) / car.maxSpeed, 1);
+            if (keys.left) car.angle -= car.turnRate * (0.35 + steerPower * 0.95);
+            if (keys.right) car.angle += car.turnRate * (0.35 + steerPower * 0.95);
+
+            const nextX = car.x + Math.cos(car.angle) * car.speed;
+            const nextY = car.y + Math.sin(car.angle) * car.speed;
+
+            const onTrack = isOnTrack(nextX, nextY);
+            if (!onTrack) {
+                car.speed *= 0.87;
+            }
+
+            car.x = nextX;
+            car.y = nextY;
+        }
+
+        function drawBackground() {
+            ctx.fillStyle = '#d0dfc8';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = '#c2d7b8';
+            for (let i = 0; i < 16; i++) {
+                const x = (i * 73 + 30) % canvas.width;
+                const y = (i * 41 + 24) % canvas.height;
+                ctx.beginPath();
+                ctx.arc(x, y, 20 + (i % 4) * 4, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function drawTrack() {
+            ctx.fillStyle = '#5f666b';
+            ctx.beginPath();
+            ctx.ellipse(world.centerX, world.centerY, world.outerRx + 10, world.outerRy + 10, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#343b3f';
+            ctx.beginPath();
+            ctx.ellipse(world.centerX, world.centerY, world.outerRx, world.outerRy, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#d0dfc8';
+            ctx.beginPath();
+            ctx.ellipse(world.centerX, world.centerY, world.innerRx, world.innerRy, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.setLineDash([14, 10]);
+            ctx.lineWidth = 3;
+            ctx.strokeStyle = '#f3f4f6cc';
+            ctx.beginPath();
+            ctx.ellipse(world.centerX, world.centerY, (world.outerRx + world.innerRx) / 2, (world.outerRy + world.innerRy) / 2, 0, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            if (world.showRaceLine) {
+                ctx.strokeStyle = '#ff6b3599';
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.ellipse(world.centerX, world.centerY + 8, (world.outerRx + world.innerRx) / 2 + 10, (world.outerRy + world.innerRy) / 2 - 6, 0, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+
+            ctx.fillStyle = '#ffffff';
+            for (let i = 0; i < 10; i++) {
+                ctx.fillRect(world.centerX - 42 + i * 8, world.centerY + 134, 5, 16);
+            }
+        }
+
+        function drawCones() {
+            for (const cone of cones) {
+                ctx.fillStyle = '#f9fafb';
+                ctx.beginPath();
+                ctx.moveTo(cone.x, cone.y - 5);
+                ctx.lineTo(cone.x - 5, cone.y + 5);
+                ctx.lineTo(cone.x + 5, cone.y + 5);
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.strokeStyle = '#ff6b35';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(cone.x - 3, cone.y + 1);
+                ctx.lineTo(cone.x + 3, cone.y + 1);
+                ctx.stroke();
+            }
+        }
+
+        function drawCar() {
+            ctx.save();
+            ctx.translate(car.x, car.y);
+            ctx.rotate(car.angle);
+
+            ctx.fillStyle = '#00000033';
+            ctx.fillRect(-11, -7, 25, 14);
+
+            ctx.fillStyle = '#ff6b35';
+            ctx.fillRect(-12, -8, 24, 16);
+
+            ctx.fillStyle = '#fef3c7';
+            ctx.fillRect(1, -4, 8, 8);
+
+            ctx.fillStyle = '#1f2937';
+            ctx.fillRect(-8, -6, 7, 12);
+
+            ctx.restore();
+        }
+
+        function drawOverlay() {
+            if (world.finished) {
+                ctx.fillStyle = '#111827a8';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                ctx.textAlign = 'center';
+                ctx.fillStyle = '#f8fafc';
+                ctx.font = '700 38px Trebuchet MS';
+                ctx.fillText('Maali!', canvas.width / 2, canvas.height / 2 - 26);
+
+                ctx.font = '700 24px Trebuchet MS';
+                ctx.fillText('Aika: ' + formatTime(world.elapsed), canvas.width / 2, canvas.height / 2 + 12);
+
+                ctx.font = '500 18px Trebuchet MS';
+                ctx.fillText('Paina Aloita alusta uuteen yritykseen', canvas.width / 2, canvas.height / 2 + 46);
+            }
+        }
+
+        function draw() {
+            drawBackground();
+            drawTrack();
+            drawCones();
+            drawCar();
+            drawOverlay();
+        }
+
+        let lastTs = performance.now();
+        function gameLoop(ts) {
+            const dt = Math.min((ts - lastTs) / 1000, 0.05);
+            lastTs = ts;
+
+            if (!world.finished) {
+                updateCar();
+                updateCheckpoints();
+
+                if (world.started) {
+                    world.elapsed += dt;
+                    timeEl.textContent = world.elapsed.toFixed(2);
+                }
+            }
+
+            speedEl.textContent = String(Math.round(Math.abs(car.speed) * 28));
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function mapKey(code, active) {
+            if (code === 'ArrowUp' || code === 'KeyW') keys.up = active;
+            if (code === 'ArrowDown' || code === 'KeyS') keys.down = active;
+            if (code === 'ArrowLeft' || code === 'KeyA') keys.left = active;
+            if (code === 'ArrowRight' || code === 'KeyD') keys.right = active;
+        }
+
+        document.addEventListener('keydown', (event) => {
+            mapKey(event.code, true);
+            if (event.code.startsWith('Arrow')) event.preventDefault();
+        });
+
+        document.addEventListener('keyup', (event) => {
+            mapKey(event.code, false);
+        });
+
+        for (const btn of document.querySelectorAll('.touch button')) {
+            const key = btn.getAttribute('data-key');
+            btn.addEventListener('touchstart', (event) => {
+                event.preventDefault();
+                keys[key] = true;
+            }, { passive: false });
+            btn.addEventListener('touchend', () => {
+                keys[key] = false;
+            });
+            btn.addEventListener('mousedown', () => {
+                keys[key] = true;
+            });
+            btn.addEventListener('mouseup', () => {
+                keys[key] = false;
+            });
+            btn.addEventListener('mouseleave', () => {
+                keys[key] = false;
+            });
+        }
+
+        document.getElementById('restartBtn').addEventListener('click', resetRace);
+        document.getElementById('ghostBtn').addEventListener('click', () => {
+            world.showRaceLine = !world.showRaceLine;
+        });
+
+        updateBest();
+        resetRace();
+        requestAnimationFrame(gameLoop);
+    </script>
+</body>
+</html>
